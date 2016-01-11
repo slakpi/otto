@@ -1,0 +1,351 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		258C0B591C135852004E72F6 /* XPLM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 258C0B581C135852004E72F6 /* XPLM.framework */; };
+		258C0B5B1C135860004E72F6 /* XPWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 258C0B5A1C135860004E72F6 /* XPWidgets.framework */; };
+		25E7A9C91C419D540054E2F4 /* Autopilot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9BD1C419D540054E2F4 /* Autopilot.cpp */; };
+		25E7A9CA1C419D540054E2F4 /* Autopilot.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9BE1C419D540054E2F4 /* Autopilot.hpp */; };
+		25E7A9CB1C419D540054E2F4 /* AveragingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9BF1C419D540054E2F4 /* AveragingBuffer.cpp */; };
+		25E7A9CC1C419D540054E2F4 /* AveragingBuffer.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9C01C419D540054E2F4 /* AveragingBuffer.hpp */; };
+		25E7A9CD1C419D540054E2F4 /* DataSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9C11C419D540054E2F4 /* DataSource.cpp */; };
+		25E7A9CE1C419D540054E2F4 /* DataSource.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9C21C419D540054E2F4 /* DataSource.hpp */; };
+		25E7A9CF1C419D540054E2F4 /* FlightDirector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9C31C419D540054E2F4 /* FlightDirector.cpp */; };
+		25E7A9D01C419D540054E2F4 /* FlightDirector.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9C41C419D540054E2F4 /* FlightDirector.hpp */; };
+		25E7A9D11C419D540054E2F4 /* TimerSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9C51C419D540054E2F4 /* TimerSource.cpp */; };
+		25E7A9D21C419D540054E2F4 /* TimerSource.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9C61C419D540054E2F4 /* TimerSource.hpp */; };
+		25E7A9D31C419D540054E2F4 /* Utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9C71C419D540054E2F4 /* Utilities.cpp */; };
+		25E7A9D41C419D540054E2F4 /* Utilities.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9C81C419D540054E2F4 /* Utilities.hpp */; };
+		25E7A9DC1C419D5E0054E2F4 /* XPlaneAutopilot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9D51C419D5E0054E2F4 /* XPlaneAutopilot.cpp */; };
+		25E7A9DD1C419D5E0054E2F4 /* XPlaneAutopilot.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9D61C419D5E0054E2F4 /* XPlaneAutopilot.hpp */; };
+		25E7A9DE1C419D5E0054E2F4 /* XPlaneDataSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9D71C419D5E0054E2F4 /* XPlaneDataSource.cpp */; };
+		25E7A9DF1C419D5E0054E2F4 /* XPlaneDataSource.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9D81C419D5E0054E2F4 /* XPlaneDataSource.hpp */; };
+		25E7A9E01C419D5E0054E2F4 /* XPlaneTimerSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9D91C419D5E0054E2F4 /* XPlaneTimerSource.cpp */; };
+		25E7A9E11C419D5E0054E2F4 /* XPlaneTimerSource.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9DA1C419D5E0054E2F4 /* XPlaneTimerSource.hpp */; };
+		25E7A9E21C419D5E0054E2F4 /* xplane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9DB1C419D5E0054E2F4 /* xplane.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		258C0B4E1C135325004E72F6 /* otto.xpl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = mac.xpl; sourceTree = BUILT_PRODUCTS_DIR; };
+		258C0B581C135852004E72F6 /* XPLM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPLM.framework; path = SDK/Libraries/Mac/XPLM.framework; sourceTree = "<group>"; };
+		258C0B5A1C135860004E72F6 /* XPWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPWidgets.framework; path = SDK/Libraries/Mac/XPWidgets.framework; sourceTree = "<group>"; };
+		25E7A9BD1C419D540054E2F4 /* Autopilot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Autopilot.cpp; path = ../Autopilot.cpp; sourceTree = "<group>"; };
+		25E7A9BE1C419D540054E2F4 /* Autopilot.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Autopilot.hpp; path = ../Autopilot.hpp; sourceTree = "<group>"; };
+		25E7A9BF1C419D540054E2F4 /* AveragingBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AveragingBuffer.cpp; path = ../AveragingBuffer.cpp; sourceTree = "<group>"; };
+		25E7A9C01C419D540054E2F4 /* AveragingBuffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AveragingBuffer.hpp; path = ../AveragingBuffer.hpp; sourceTree = "<group>"; };
+		25E7A9C11C419D540054E2F4 /* DataSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataSource.cpp; path = ../DataSource.cpp; sourceTree = "<group>"; };
+		25E7A9C21C419D540054E2F4 /* DataSource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DataSource.hpp; path = ../DataSource.hpp; sourceTree = "<group>"; };
+		25E7A9C31C419D540054E2F4 /* FlightDirector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FlightDirector.cpp; path = ../FlightDirector.cpp; sourceTree = "<group>"; };
+		25E7A9C41C419D540054E2F4 /* FlightDirector.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = FlightDirector.hpp; path = ../FlightDirector.hpp; sourceTree = "<group>"; };
+		25E7A9C51C419D540054E2F4 /* TimerSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TimerSource.cpp; path = ../TimerSource.cpp; sourceTree = "<group>"; };
+		25E7A9C61C419D540054E2F4 /* TimerSource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = TimerSource.hpp; path = ../TimerSource.hpp; sourceTree = "<group>"; };
+		25E7A9C71C419D540054E2F4 /* Utilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Utilities.cpp; path = ../Utilities.cpp; sourceTree = "<group>"; };
+		25E7A9C81C419D540054E2F4 /* Utilities.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Utilities.hpp; path = ../Utilities.hpp; sourceTree = "<group>"; };
+		25E7A9D51C419D5E0054E2F4 /* XPlaneAutopilot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XPlaneAutopilot.cpp; sourceTree = "<group>"; };
+		25E7A9D61C419D5E0054E2F4 /* XPlaneAutopilot.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XPlaneAutopilot.hpp; sourceTree = "<group>"; };
+		25E7A9D71C419D5E0054E2F4 /* XPlaneDataSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XPlaneDataSource.cpp; sourceTree = "<group>"; };
+		25E7A9D81C419D5E0054E2F4 /* XPlaneDataSource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XPlaneDataSource.hpp; sourceTree = "<group>"; };
+		25E7A9D91C419D5E0054E2F4 /* XPlaneTimerSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XPlaneTimerSource.cpp; sourceTree = "<group>"; };
+		25E7A9DA1C419D5E0054E2F4 /* XPlaneTimerSource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XPlaneTimerSource.hpp; sourceTree = "<group>"; };
+		25E7A9DB1C419D5E0054E2F4 /* xplane.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xplane.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		258C0B4B1C135325004E72F6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				258C0B5B1C135860004E72F6 /* XPWidgets.framework in Frameworks */,
+				258C0B591C135852004E72F6 /* XPLM.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		258C0B451C135325004E72F6 = {
+			isa = PBXGroup;
+			children = (
+				258C0B5A1C135860004E72F6 /* XPWidgets.framework */,
+				258C0B581C135852004E72F6 /* XPLM.framework */,
+				258C0B551C1355E3004E72F6 /* Source */,
+				258C0B4F1C135325004E72F6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		258C0B4F1C135325004E72F6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				258C0B4E1C135325004E72F6 /* otto.xpl */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		258C0B551C1355E3004E72F6 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				25E7A9BD1C419D540054E2F4 /* Autopilot.cpp */,
+				25E7A9BE1C419D540054E2F4 /* Autopilot.hpp */,
+				25E7A9BF1C419D540054E2F4 /* AveragingBuffer.cpp */,
+				25E7A9C01C419D540054E2F4 /* AveragingBuffer.hpp */,
+				25E7A9C11C419D540054E2F4 /* DataSource.cpp */,
+				25E7A9C21C419D540054E2F4 /* DataSource.hpp */,
+				25E7A9C31C419D540054E2F4 /* FlightDirector.cpp */,
+				25E7A9C41C419D540054E2F4 /* FlightDirector.hpp */,
+				25E7A9C51C419D540054E2F4 /* TimerSource.cpp */,
+				25E7A9C61C419D540054E2F4 /* TimerSource.hpp */,
+				25E7A9C71C419D540054E2F4 /* Utilities.cpp */,
+				25E7A9C81C419D540054E2F4 /* Utilities.hpp */,
+				25E7A9D51C419D5E0054E2F4 /* XPlaneAutopilot.cpp */,
+				25E7A9D61C419D5E0054E2F4 /* XPlaneAutopilot.hpp */,
+				25E7A9D71C419D5E0054E2F4 /* XPlaneDataSource.cpp */,
+				25E7A9D81C419D5E0054E2F4 /* XPlaneDataSource.hpp */,
+				25E7A9D91C419D5E0054E2F4 /* XPlaneTimerSource.cpp */,
+				25E7A9DA1C419D5E0054E2F4 /* XPlaneTimerSource.hpp */,
+				25E7A9DB1C419D5E0054E2F4 /* xplane.cpp */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		258C0B4C1C135325004E72F6 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				25E7A9CA1C419D540054E2F4 /* Autopilot.hpp in Headers */,
+				25E7A9D21C419D540054E2F4 /* TimerSource.hpp in Headers */,
+				25E7A9DD1C419D5E0054E2F4 /* XPlaneAutopilot.hpp in Headers */,
+				25E7A9E11C419D5E0054E2F4 /* XPlaneTimerSource.hpp in Headers */,
+				25E7A9CE1C419D540054E2F4 /* DataSource.hpp in Headers */,
+				25E7A9D01C419D540054E2F4 /* FlightDirector.hpp in Headers */,
+				25E7A9DF1C419D5E0054E2F4 /* XPlaneDataSource.hpp in Headers */,
+				25E7A9CC1C419D540054E2F4 /* AveragingBuffer.hpp in Headers */,
+				25E7A9D41C419D540054E2F4 /* Utilities.hpp in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		258C0B4D1C135325004E72F6 /* otto */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 258C0B521C135325004E72F6 /* Build configuration list for PBXNativeTarget "otto" */;
+			buildPhases = (
+				258C0B4A1C135325004E72F6 /* Sources */,
+				258C0B4B1C135325004E72F6 /* Frameworks */,
+				258C0B4C1C135325004E72F6 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = otto;
+			productName = otto;
+			productReference = 258C0B4E1C135325004E72F6 /* otto.xpl */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		258C0B461C135325004E72F6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0720;
+				ORGANIZATIONNAME = slakr.org;
+				TargetAttributes = {
+					258C0B4D1C135325004E72F6 = {
+						CreatedOnToolsVersion = 7.1.1;
+					};
+				};
+			};
+			buildConfigurationList = 258C0B491C135325004E72F6 /* Build configuration list for PBXProject "otto" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 258C0B451C135325004E72F6;
+			productRefGroup = 258C0B4F1C135325004E72F6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				258C0B4D1C135325004E72F6 /* otto */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		258C0B4A1C135325004E72F6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				25E7A9DE1C419D5E0054E2F4 /* XPlaneDataSource.cpp in Sources */,
+				25E7A9CD1C419D540054E2F4 /* DataSource.cpp in Sources */,
+				25E7A9E21C419D5E0054E2F4 /* xplane.cpp in Sources */,
+				25E7A9D11C419D540054E2F4 /* TimerSource.cpp in Sources */,
+				25E7A9E01C419D5E0054E2F4 /* XPlaneTimerSource.cpp in Sources */,
+				25E7A9D31C419D540054E2F4 /* Utilities.cpp in Sources */,
+				25E7A9CF1C419D540054E2F4 /* FlightDirector.cpp in Sources */,
+				25E7A9CB1C419D540054E2F4 /* AveragingBuffer.cpp in Sources */,
+				25E7A9DC1C419D5E0054E2F4 /* XPlaneAutopilot.cpp in Sources */,
+				25E7A9C91C419D540054E2F4 /* Autopilot.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		258C0B501C135325004E72F6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		258C0B511C135325004E72F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		258C0B531C135325004E72F6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_EXTENSION = xpl;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SDK/Libraries/Mac",
+				);
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"XPLM210=1",
+					"APL=1",
+					"IBM=0",
+					"LIN=0",
+				);
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/CHeaders";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/Libraries/Mac";
+				PRODUCT_NAME = mac;
+			};
+			name = Debug;
+		};
+		258C0B541C135325004E72F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_EXTENSION = xpl;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SDK/Libraries/Mac",
+				);
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"NDEBUG=1",
+					"LIN=0",
+					"IBM=0",
+					"APL=1",
+					"XPLM210=1",
+				);
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/CHeaders";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/Libraries/Mac";
+				PRODUCT_NAME = mac;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		258C0B491C135325004E72F6 /* Build configuration list for PBXProject "otto" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				258C0B501C135325004E72F6 /* Debug */,
+				258C0B511C135325004E72F6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		258C0B521C135325004E72F6 /* Build configuration list for PBXNativeTarget "otto" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				258C0B531C135325004E72F6 /* Debug */,
+				258C0B541C135325004E72F6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 258C0B461C135325004E72F6 /* Project object */;
+}
