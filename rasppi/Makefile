@@ -1,45 +1,50 @@
 CXX=g++
 CXXFLAGS=-c -std=c++11 -O3 -Wall
-OBJFILES=$(OUTDIR)Autopilot.o $(OUTDIR)AveragingBuffer.o $(OUTDIR)DataSource.o\
- $(OUTDIR)FlightDirector.o $(OUTDIR)TimerSource.o $(OUTDIR)Utilities.o\
- $(OUTDIR)rasppi.o
+OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
+ $(OBJDIR)FlightDirector.o $(OBJDIR)TimerSource.o $(OBJDIR)Utilities.o\
+ $(OBJDIR)rasppi.o
 SRCDIR=../
-OUTDIR=./
+OBJDIR=./obj/
+BINDIR=./bin/
 
-all: otto
+all: directories otto
+
+directories:
+	@mkdir -p $(OBJDIR)
+	@mkdir -p $(BINDIR)
 
 otto: $(OBJFILES)
 	@echo Linking otto...
-	@$(CXX) $(OBJFILES) -o $(OUTDIR)otto
+	@$(CXX) $(OBJFILES) -o $(BINDIR)otto
 
-Autopilot.o:
+$(OBJDIR)Autopilot.o:
 	@echo Compiling Autopilot.cpp...
-	@$(CXX) $(CXXFLAGS) -o $(OUTDIR)Autopilot.o $(SRCDIR)Autopilot.cpp
+	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)Autopilot.o $(SRCDIR)Autopilot.cpp
 
-AveragingBuffer.o:
+$(OBJDIR)AveragingBuffer.o:
 	@echo Compiling AveragingBuffer.cpp...
-	@$(CXX) $(CXXFLAGS) -o $(OUTDIR)AveragingBuffer.o $(SRCDIR)AveragingBuffer.cpp
+	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)AveragingBuffer.o $(SRCDIR)AveragingBuffer.cpp
 
-DataSource.o:
+$(OBJDIR)DataSource.o:
 	@echo Compiling DataSource.cpp...
-	@$(CXX) $(CXXFLAGS) -o $(OUTDIR)DataSource.o $(SRCDIR)DataSource.cpp
+	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)DataSource.o $(SRCDIR)DataSource.cpp
 
-FlightDirector.o:
+$(OBJDIR)FlightDirector.o:
 	@echo Compiling FlightDirector.cpp...
-	@$(CXX) $(CXXFLAGS) -o $(OUTDIR)FlightDirector.o $(SRCDIR)FlightDirector.cpp
+	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)FlightDirector.o $(SRCDIR)FlightDirector.cpp
 
-TimerSource.o:
+$(OBJDIR)TimerSource.o:
 	@echo Compiling TimerSource.cpp...
-	@$(CXX) $(CXXFLAGS) -o $(OUTDIR)TimerSource.o $(SRCDIR)TimerSource.cpp
+	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)TimerSource.o $(SRCDIR)TimerSource.cpp
 
-Utilities.o:
+$(OBJDIR)Utilities.o:
 	@echo Compiling Utilities.cpp...
-	@$(CXX) $(CXXFLAGS) -o $(OUTDIR)Utilities.o $(SRCDIR)Utilities.cpp
+	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)Utilities.o $(SRCDIR)Utilities.cpp
 
-rasppi.o:
+$(OBJDIR)rasppi.o:
 	@echo Compiling rasppi.cpp...
-	@$(CXX) $(CXXFLAGS) -o $(OUTDIR)rasppi.o rasppi.cpp
+	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)rasppi.o rasppi.cpp
 
 clean:
 	@echo Cleaning...
-	@rm -f $(OBJFILES) $(OUTDIR)otto
+	@rm -f $(OBJFILES) $(BINDIR)otto
