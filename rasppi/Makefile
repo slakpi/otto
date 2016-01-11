@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-c -O3 -Wall
+CXXFLAGS=-c -std=c++11 -O3 -Wall
 OBJFILES=$(OUTDIR)Autopilot.o $(OUTDIR)AveragingBuffer.o $(OUTDIR)DataSource.o\
  $(OUTDIR)FlightDirector.o $(OUTDIR)TimerSource.o $(OUTDIR)Utilities.o\
  $(OUTDIR)rasppi.o

@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <cstring>
 #include "AveragingBuffer.hpp"
 #include "Utilities.hpp"
 
@@ -10,11 +11,11 @@ AveragingBuffer::AveragingBuffer(unsigned int _bufferLen)
 {
 	if (bufferLen < 1)
 		throw std::invalid_argument("_bufferLen");
-	
+
 	buffer.resize(bufferLen);
 	memset(buffer.data(), 0, sizeof(double) * bufferLen);
 }
-	
+
 double AveragingBuffer::pushSample(double _sample)
 {
 	total -= buffer[i];
@@ -29,7 +30,7 @@ double AveragingBuffer::average() const
 {
 	return (samples > 0 ? total / samples : 0);
 }
-	
+
 void AveragingBuffer::reset()
 {
 	i = samples = 0;
