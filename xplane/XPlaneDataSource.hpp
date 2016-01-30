@@ -23,11 +23,11 @@ public:
 	virtual bool sample(Data *_data) const;
 	
 private:
-	XPLMDataRef lat;
-	XPLMDataRef lon;
-	XPLMDataRef alt;
-	XPLMDataRef hdg;
-	XPLMDataRef gs;
+	XPLMDataRef latRef;
+	XPLMDataRef lonRef;
+	XPLMDataRef altRef;
+	XPLMDataRef hdgRef;
+	XPLMDataRef gsRef;
 };
 
 #endif

@@ -16,11 +16,7 @@ private:
 		projectionTimer,
 		timerCount // must be last item.
 	};
-	
-	static const unsigned int verticalSpeedDelay = 5;
-	static const unsigned int groundSpeedDelay = 5;
-	static const unsigned int projectionInterval = 5000;
-	
+		
 private:
 	static void timerCallback(double _interval, void *_arg);
 	
@@ -46,7 +42,8 @@ private:
 	TimerSource *timer;
 	LogCallback log;
 	Data lastSample;
-	double projLat, projLon, projDistance;
+	double projLat, projLon, projDistance, targetHdg;
+	AveragingBuffer rateOfTurn;
 	AveragingBuffer verticalSpeed;
 	AveragingBuffer groundSpeed;
 	unsigned int timers[timerCount];

@@ -3,6 +3,15 @@
 #include "FlightDirector.hpp"
 #include "Utilities.hpp"
 
+static const unsigned int rateOfTurnDelay = 2;
+static const unsigned int verticalSpeedDelay = 5;
+static const unsigned int groundSpeedDelay = 5;
+static const unsigned int projectionInterval = 5000;
+
+static const double maxHdgErr = 30.0;
+static const double maxRoT = 3.0;
+static const double maxRudder = 0.25;
+
 void FlightDirector::timerCallback(double _interval, void *_arg)
 {
 	FlightDirector *fd = static_cast<FlightDirector*>(_arg);
@@ -25,6 +34,8 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 	projLat(0),
 	projLon(0),
 	projDistance(0),
+	targetHdg(180.0),
+	rateOfTurn(rateOfTurnDelay),
 	verticalSpeed(verticalSpeedDelay),
 	groundSpeed(groundSpeedDelay)
 {
@@ -63,20 +74,42 @@ void FlightDirector::disable()
 void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 {
 	Data d;
+	double Ra, Rt, dH, Ar;
 
 	if (!data->sample(&d))
 		return;
 	if (_elapsedMilliseconds < 1)
 		return; /* divide by zero protection. */
 
+	Ra = rateOfTurn.pushSample((d.hdg - lastSample.hdg) * 1000 / _elapsedMilliseconds);
 	verticalSpeed.pushSample((d.alt - lastSample.alt) * 1000 / _elapsedMilliseconds * 60);
 	groundSpeed.pushSample(d.gs);
 	lastSample = d;
 
 	for (int i = 0; i < timerCount; ++i)
 		timers[i] += _elapsedMilliseconds;
-
+	
 	updateProjectedLandingPoint();
+
+/*	eventually code will take the updated projected landing point and
+	modify targetHdg accordingly.  for now, just hold a heading.
+ 
+	the target rate-of-turn follows an exponential curve designed to
+	hit +/- 3 degrees per second at a heading error of +/- 30 degrees.
+ 
+	the rudder angle follows a logarithmic curve with a steeper response
+	when the delta between the target rate of turn and the actual rate of
+	turn approaches zero.  the logarithmic curve hits +/- 0.25 degrees of
+	rudder deflection at the 3 degree per second maximum rate of turn.
+ */
+	
+	dH = fmod(fmod(targetHdg - d.hdg, 360.0) + 540.0, 360.0) - 180.0;
+	Rt = min(pow(1.0472941228, min(fabs(dH), maxHdgErr)) - 1, maxRoT) * sgn(dH);
+	Ar = min((log10(min(fabs(Rt - Ra), maxRoT) + .25) / 2.4082399653 + 0.24) / 1.8, maxRudder) * sgn(Rt - Ra);
+	ap->setRudderDeflection((float)Ar);
+	
+	(*log)("H: %7.2f, dH: %7.2f, Ra: %7.2f, Rt: %7.2f, Ar: %7.2f\n",
+		   d.hdg, dH, Ra, Rt, Ar);
 }
 
 void FlightDirector::updateProjectedLandingPoint()
@@ -114,4 +147,17 @@ void FlightDirector::updateProjectedLandingPoint()
 
 	projLat = max(min(radToDeg(projLat), 90.0), -90.0);
 	projLon = max(min(radToDeg(projLon), 180.0), -180.0);
+	
+/*	for the sake of demonstration, modify the target heading with altitude. */
+	
+	if (lastSample.alt >= 80000)
+		targetHdg = 180;
+	else if (lastSample.alt < 80000 && lastSample.alt >= 60000)
+		targetHdg = 90;
+	else if (lastSample.alt < 60000 && lastSample.alt >= 40000)
+		targetHdg = 0;
+	else if (lastSample.alt < 40000 && lastSample.alt >= 20000)
+		targetHdg = 270;
+	else
+		targetHdg = 180;
 }

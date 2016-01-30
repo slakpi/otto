@@ -3,16 +3,21 @@
 
 #include <cmath>
 
-template<class T>
+template<typename T>
 T min(const T &_a, const T &_b)
 {
 	return (_a < _b ? _a : _b);
 }
 
-template<class T>
+template<typename T>
 T max(const T &_a, const T &_b)
 {
 	return (_a > _b ? _a : _b);
+}
+
+template<typename T> int sgn(const T &_val)
+{
+	return (T(0) < _val) - (_val < T(0));
 }
 
 inline double degToRad(double _deg)
