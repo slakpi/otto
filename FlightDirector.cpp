@@ -48,9 +48,6 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 	if (log == nullptr)
 		throw std::invalid_argument("_log");
 
-	memset(&lastSample, 0, sizeof(lastSample));
-	memset(timers, 0, sizeof(timers));
-
 	timer->setCallback(timerCallback, this);
 }
 
@@ -73,8 +70,15 @@ void FlightDirector::disable()
 
 void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 {
+/*	Ra = Actual rate-of-turn derived from an averaged rate of "GPS" heading change.
+	Rt = Target rate-of-turn calculated from the response curve below.
+	dR = Rate-of-turn error (Rt - Ra).
+	dH = Error between "GPS" heading and target heading.
+	Ar = Rudder angle calculated from the response curve below.
+ */
+	
 	Data d;
-	double Ra, Rt, dH, Ar;
+	double Ra, Rt, dR, dH, Ar;
 
 	if (!data->sample(&d))
 		return;
@@ -85,31 +89,38 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 	verticalSpeed.pushSample((d.alt - lastSample.alt) * 1000 / _elapsedMilliseconds * 60);
 	groundSpeed.pushSample(d.gs);
 	lastSample = d;
-
-	for (int i = 0; i < timerCount; ++i)
-		timers[i] += _elapsedMilliseconds;
 	
 	updateProjectedLandingPoint();
+	updateTargetHeading();
 
-/*	eventually code will take the updated projected landing point and
-	modify targetHdg accordingly.  for now, just hold a heading.
+/*	the target rate-of-turn follows an exponential curve designed to hit +/- 3 degrees per
+	second at a heading error of +/- 30 degrees.  this gives a steeper response as the
+	heading error increases.  dH is positive for right turns and negative for left turns.
+
+						  |dH|
+	  Rt = ( 1.0472941228      - 1 ) * sgn(dH)
  
-	the target rate-of-turn follows an exponential curve designed to
-	hit +/- 3 degrees per second at a heading error of +/- 30 degrees.
+	the rudder angle follows a logarithmic curve with a steeper response when the delta
+	between the target rate of turn and the actual rate of turn approaches zero.  the
+	logarithmic curve hits +/- 0.25 degrees of rudder deflection at the 3 degree per
+	second maximum rate of turn. dR is positive for right deflection and negative for
+	left deflection.
  
-	the rudder angle follows a logarithmic curve with a steeper response
-	when the delta between the target rate of turn and the actual rate of
-	turn approaches zero.  the logarithmic curve hits +/- 0.25 degrees of
-	rudder deflection at the 3 degree per second maximum rate of turn.
+	         log10 ( |dR| + 0.25 )              1
+	  Ar = ( --------------------- + 0.24 ) * ----- * sgn(dR)
+	             2.4082399653                  1.8
+
+	+/- 0.25 degrees of rudder deflection is a magic constant dependent on the design of
+	the glider.  the response curve for Ar will need to be redesigned depending on the
+	final design of the glider and its rudder.
  */
 	
 	dH = fmod(fmod(targetHdg - d.hdg, 360.0) + 540.0, 360.0) - 180.0;
 	Rt = min(pow(1.0472941228, min(fabs(dH), maxHdgErr)) - 1, maxRoT) * sgn(dH);
-	Ar = min((log10(min(fabs(Rt - Ra), maxRoT) + .25) / 2.4082399653 + 0.24) / 1.8, maxRudder) * sgn(Rt - Ra);
-	ap->setRudderDeflection((float)Ar);
+	dR = Rt - Ra;
+	Ar = min((log10(min(fabs(dR), maxRoT) + 0.25) / 2.4082399653 + 0.24) / 1.8, maxRudder) * sgn(dR);
 	
-	(*log)("H: %7.2f, dH: %7.2f, Ra: %7.2f, Rt: %7.2f, Ar: %7.2f\n",
-		   d.hdg, dH, Ra, Rt, Ar);
+	ap->setRudderDeflection((float)Ar);
 }
 
 void FlightDirector::updateProjectedLandingPoint()
@@ -121,11 +132,6 @@ void FlightDirector::updateProjectedLandingPoint()
 	double av = verticalSpeed.average();
 	double ag = groundSpeed.average();
 
-	if (timers[projectionTimer] < projectionInterval)
-		return;
-
-	timers[projectionTimer] = 0;
-
 /*	assume a nominal -1 ft/s if the average vertical speed is greater than -1 ft/s.  this
 	both protects from division by zero and effectively assumes level flight if the glider
 	is climbing.  we can recompute when the glider resumes a descent.
@@ -134,7 +140,7 @@ void FlightDirector::updateProjectedLandingPoint()
 	we do not actually need a perfect projected landing point.  we just need to know if the
 	glider is headed in a direction that will put it in a fenced off area.
 
-	the heading should be a ground track so that we are taking winds into account.
+	the heading should be a true ground track so that we are taking winds into account.
  */
 
 	av = (av > -1 ? -1 : av);
@@ -147,17 +153,15 @@ void FlightDirector::updateProjectedLandingPoint()
 
 	projLat = max(min(radToDeg(projLat), 90.0), -90.0);
 	projLon = max(min(radToDeg(projLon), 180.0), -180.0);
+}
+
+void FlightDirector::updateTargetHeading()
+{
+/*	try to track south on W 123 longitude using simple linear heading changes.  dLon is
+	positive when the glider is East of W 123 and negative when the glider is West of
+	W 123.
+ */
 	
-/*	for the sake of demonstration, modify the target heading with altitude. */
-	
-	if (lastSample.alt >= 80000)
-		targetHdg = 180;
-	else if (lastSample.alt < 80000 && lastSample.alt >= 60000)
-		targetHdg = 90;
-	else if (lastSample.alt < 60000 && lastSample.alt >= 40000)
-		targetHdg = 0;
-	else if (lastSample.alt < 40000 && lastSample.alt >= 20000)
-		targetHdg = 270;
-	else
-		targetHdg = 180;
+	double dLon = lastSample.lon + 123; /* W 123 = -123 */
+
 }

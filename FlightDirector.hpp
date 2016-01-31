@@ -11,13 +11,6 @@ typedef void (*LogCallback)(const char *_fmt, ...);
 class FlightDirector
 {
 private:
-	enum
-	{
-		projectionTimer,
-		timerCount // must be last item.
-	};
-		
-private:
 	static void timerCallback(double _interval, void *_arg);
 	
 public:
@@ -36,6 +29,8 @@ public:
 private:
 	void updateProjectedLandingPoint();
 	
+	void updateTargetHeading();
+	
 private:
 	Autopilot *ap;
 	DataSource *data;
@@ -46,7 +41,6 @@ private:
 	AveragingBuffer rateOfTurn;
 	AveragingBuffer verticalSpeed;
 	AveragingBuffer groundSpeed;
-	unsigned int timers[timerCount];
 };
 
 #endif

@@ -31,7 +31,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		258C0B4E1C135325004E72F6 /* otto.xpl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = mac.xpl; sourceTree = BUILT_PRODUCTS_DIR; };
+		258C0B4E1C135325004E72F6 /* mac.xpl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = mac.xpl; sourceTree = BUILT_PRODUCTS_DIR; };
 		258C0B581C135852004E72F6 /* XPLM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPLM.framework; path = SDK/Libraries/Mac/XPLM.framework; sourceTree = "<group>"; };
 		258C0B5A1C135860004E72F6 /* XPWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPWidgets.framework; path = SDK/Libraries/Mac/XPWidgets.framework; sourceTree = "<group>"; };
 		25E7A9BD1C419D540054E2F4 /* Autopilot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Autopilot.cpp; path = ../Autopilot.cpp; sourceTree = "<group>"; };
@@ -68,6 +68,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2530F7C01C5D840000FE8398 /* X-Plane */ = {
+			isa = PBXGroup;
+			children = (
+				25E7A9D51C419D5E0054E2F4 /* XPlaneAutopilot.cpp */,
+				25E7A9D61C419D5E0054E2F4 /* XPlaneAutopilot.hpp */,
+				25E7A9D71C419D5E0054E2F4 /* XPlaneDataSource.cpp */,
+				25E7A9D81C419D5E0054E2F4 /* XPlaneDataSource.hpp */,
+				25E7A9D91C419D5E0054E2F4 /* XPlaneTimerSource.cpp */,
+				25E7A9DA1C419D5E0054E2F4 /* XPlaneTimerSource.hpp */,
+				25E7A9DB1C419D5E0054E2F4 /* xplane.cpp */,
+			);
+			name = "X-Plane";
+			sourceTree = "<group>";
+		};
 		258C0B451C135325004E72F6 = {
 			isa = PBXGroup;
 			children = (
@@ -81,7 +95,7 @@
 		258C0B4F1C135325004E72F6 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				258C0B4E1C135325004E72F6 /* otto.xpl */,
+				258C0B4E1C135325004E72F6 /* mac.xpl */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -89,6 +103,7 @@
 		258C0B551C1355E3004E72F6 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				2530F7C01C5D840000FE8398 /* X-Plane */,
 				25E7A9BD1C419D540054E2F4 /* Autopilot.cpp */,
 				25E7A9BE1C419D540054E2F4 /* Autopilot.hpp */,
 				25E7A9BF1C419D540054E2F4 /* AveragingBuffer.cpp */,
@@ -101,13 +116,6 @@
 				25E7A9C61C419D540054E2F4 /* TimerSource.hpp */,
 				25E7A9C71C419D540054E2F4 /* Utilities.cpp */,
 				25E7A9C81C419D540054E2F4 /* Utilities.hpp */,
-				25E7A9D51C419D5E0054E2F4 /* XPlaneAutopilot.cpp */,
-				25E7A9D61C419D5E0054E2F4 /* XPlaneAutopilot.hpp */,
-				25E7A9D71C419D5E0054E2F4 /* XPlaneDataSource.cpp */,
-				25E7A9D81C419D5E0054E2F4 /* XPlaneDataSource.hpp */,
-				25E7A9D91C419D5E0054E2F4 /* XPlaneTimerSource.cpp */,
-				25E7A9DA1C419D5E0054E2F4 /* XPlaneTimerSource.hpp */,
-				25E7A9DB1C419D5E0054E2F4 /* xplane.cpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -148,7 +156,7 @@
 			);
 			name = otto;
 			productName = otto;
-			productReference = 258C0B4E1C135325004E72F6 /* otto.xpl */;
+			productReference = 258C0B4E1C135325004E72F6 /* mac.xpl */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
