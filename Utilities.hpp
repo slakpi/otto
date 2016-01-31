@@ -32,4 +32,16 @@ inline double radToDeg(double _rad)
 
 #define COUNTOF(a) (sizeof(a) / sizeof((a)[0]))
 
+struct Loc
+{
+	double lat;
+	double lon;
+};
+
+void getDestination(const Loc &_pos, double _hdg, double _distance, Loc &_dest);
+
+void getDistanceAndBearing(const Loc &_pos1, const Loc &_pos2, double &_distance, double &_bearing);
+
+double crossTrackError(const Loc &_origin, const Loc &_dest, const Loc &_ppos);
+
 #endif

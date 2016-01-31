@@ -1,10 +1,11 @@
 #ifndef DataSource_hpp
 #define DataSource_hpp
 
+#include "Utilities.hpp"
+
 struct Data
 {
-	double lat; //degrees
-	double lon; //degrees
+	Loc pos;	//degrees
 	double alt; //feet
 	double hdg; //degrees (ground track)
 	double gs;  //knots

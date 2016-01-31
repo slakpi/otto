@@ -24,7 +24,7 @@ XPlaneDataSource::~XPlaneDataSource()
 
 bool XPlaneDataSource::sample(Data *_data) const
 {
-	_data->lat = _data->lon = 0.0;
+	_data->pos.lat = _data->pos.lon = 0.0;
 	_data->alt = 0.0;
 	_data->hdg = 0.0;
 	_data->gs = 0.0;
@@ -32,8 +32,8 @@ bool XPlaneDataSource::sample(Data *_data) const
 	if (latRef == nullptr || lonRef == nullptr || altRef == nullptr || hdgRef == nullptr || gsRef == nullptr)
 		return false;
 
-	_data->lat = XPLMGetDatad(latRef);
-	_data->lon = XPLMGetDatad(lonRef);
+	_data->pos.lat = XPLMGetDatad(latRef);
+	_data->pos.lon = XPLMGetDatad(lonRef);
 	_data->alt = XPLMGetDatad(altRef) * 3.28084; //meters -> feet
 	_data->hdg = XPLMGetDataf(hdgRef);
 	_data->gs = XPLMGetDataf(gsRef) * 1.94384; //meters per second -> knots

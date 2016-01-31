@@ -1,4 +1,7 @@
 #include "XPlaneAutopilot.hpp"
+#include "Utilities.hpp"
+
+static const float maxRudder = 0.25f;
 
 XPlaneAutopilot::XPlaneAutopilot()
 :	fltCtrlOverrideRef(nullptr),
@@ -21,13 +24,13 @@ float XPlaneAutopilot::getRudderDeflection() const
 	if (rudderDeflectionRef == nullptr)
 		return 0.0f;
 	
-	return XPLMGetDataf(rudderDeflectionRef);
+	return XPLMGetDataf(rudderDeflectionRef) / maxRudder;
 }
 
-void XPlaneAutopilot::setRudderDeflection(float _degrees)
+void XPlaneAutopilot::setRudderDeflection(float _deflection)
 {
 	if (rudderDeflectionRef == nullptr)
 		return;
 	
-	XPLMSetDataf(rudderDeflectionRef, _degrees);
+	XPLMSetDataf(rudderDeflectionRef, min(max(_deflection, -1.0f), 1.0f) * maxRudder);
 }

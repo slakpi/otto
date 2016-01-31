@@ -22,7 +22,7 @@ public:
 public:
 	virtual float getRudderDeflection() const;
 	
-	virtual void setRudderDeflection(float _degrees);
+	virtual void setRudderDeflection(float _deflection);
 	
 private:
 	XPLMDataRef fltCtrlOverrideRef;

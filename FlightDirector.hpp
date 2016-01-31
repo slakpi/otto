@@ -27,6 +27,8 @@ public:
 	void refresh(unsigned int _elapsedMilliseconds);
 	
 private:
+	void updateProjectedDistance();
+	
 	void updateProjectedLandingPoint();
 	
 	void updateTargetHeading();
@@ -37,7 +39,8 @@ private:
 	TimerSource *timer;
 	LogCallback log;
 	Data lastSample;
-	double projLat, projLon, projDistance, targetHdg;
+	Loc projLoc;
+	double projDistance, targetHdg;
 	AveragingBuffer rateOfTurn;
 	AveragingBuffer verticalSpeed;
 	AveragingBuffer groundSpeed;

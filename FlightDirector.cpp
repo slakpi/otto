@@ -1,7 +1,17 @@
 #include <stdexcept>
 #include <cstring>
+#include <cfloat>
 #include "FlightDirector.hpp"
 #include "Utilities.hpp"
+
+static const Loc recoveryPoints[] = {
+	{	45.4315, -122.9425	}, // Twin Oaks
+	{	45.3093, -122.3218	}, // Valley View
+	{	44.5432, -122.9315	}, // Lebanon
+	{	44.6735, -121.16	}, // Madras
+};
+
+static const int recoveryPointCount = COUNTOF(recoveryPoints);
 
 static const unsigned int rateOfTurnDelay = 2;
 static const unsigned int verticalSpeedDelay = 5;
@@ -9,7 +19,6 @@ static const unsigned int groundSpeedDelay = 5;
 
 static const double maxHdgErr = 30.0;
 static const double maxRoT = 3.0;
-static const double maxRudder = 0.25;
 
 void FlightDirector::timerCallback(double _interval, void *_arg)
 {
@@ -30,10 +39,8 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 	data(_data),
 	timer(_timer),
 	log(_log),
-	projLat(0),
-	projLon(0),
 	projDistance(0),
-	targetHdg(180.0),
+	targetHdg(0),
 	rateOfTurn(rateOfTurnDelay),
 	verticalSpeed(verticalSpeedDelay),
 	groundSpeed(groundSpeedDelay)
@@ -47,6 +54,8 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 	if (log == nullptr)
 		throw std::invalid_argument("_log");
 
+	memset(&projLoc, 0, sizeof(projLoc));
+	
 	timer->setCallback(timerCallback, this);
 }
 
@@ -77,7 +86,7 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
  */
 	
 	Data d;
-	double Ra, Rt, dR, dH, Ar;
+	double av, Ra, Rt, dR, dH, Ar;
 
 	if (!data->sample(&d))
 		return;
@@ -85,84 +94,85 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 		return; /* divide by zero protection. */
 
 	Ra = rateOfTurn.pushSample((d.hdg - lastSample.hdg) * 1000 / _elapsedMilliseconds);
-	verticalSpeed.pushSample((d.alt - lastSample.alt) * 1000 / _elapsedMilliseconds * 60);
+	av = verticalSpeed.pushSample((d.alt - lastSample.alt) * 1000 / _elapsedMilliseconds * 60);
 	groundSpeed.pushSample(d.gs);
 	lastSample = d;
-	
-	updateProjectedLandingPoint();
+		
+	updateProjectedDistance();
+//	updateProjectedLandingPoint();
 	updateTargetHeading();
 
 /*	the target rate-of-turn follows an exponential curve designed to hit +/- 3 degrees per
-	second at a heading error of +/- 30 degrees.  this gives a steeper response as the
-	heading error increases.  dH is positive for right turns and negative for left turns.
+	second at a heading error of +/- 30 degrees.  an exponential curve gives us a reponse
+	that is initially shallow and steepens as the heading error increases.  the shallow
+	initial response prevents overcorrection for small heading errors.
 
 						  |dH|
-	  Rt = ( 1.0472941228      - 1 ) * sgn(dH)
+	  Rt = ( 1.0472941228      - 1 ) * sgn( dH )
  
 	the rudder angle follows a logarithmic curve with a steeper response when the delta
 	between the target rate of turn and the actual rate of turn approaches zero.  the
-	logarithmic curve hits +/- 0.25 degrees of rudder deflection at the 3 degree per
-	second maximum rate of turn. dR is positive for right deflection and negative for
-	left deflection.
+	logarithmic curve hits +/- 1 units of rudder deflection at the 3 degree per second
+	maximum rate of turn. dR is positive for right deflection and negative for left
+	deflection.
  
-	         log10 ( |dR| + 0.25 )              1
-	  Ar = ( --------------------- + 0.24 ) * ----- * sgn(dR)
-	             2.4082399653                  1.8
-
-	+/- 0.25 degrees of rudder deflection is a magic constant dependent on the design of
-	the glider.  the response curve for Ar will need to be redesigned depending on the
-	final design of the glider and its rudder.
+	  Ar = ( log10( |dR| + .33 ) + .48 ) * sgn( dR )
  */
 	
 	dH = fmod(fmod(targetHdg - d.hdg, 360.0) + 540.0, 360.0) - 180.0;
 	Rt = min(pow(1.0472941228, min(fabs(dH), maxHdgErr)) - 1, maxRoT) * sgn(dH);
 	dR = Rt - Ra;
-	Ar = min((log10(min(fabs(dR), maxRoT) + 0.25) / 2.4082399653 + 0.24) / 1.8, maxRudder) * sgn(dR);
+	Ar = min(log10(min(fabs(dR), maxRoT) + 0.33) + 0.48, 1.0) * sgn(dR);
 	
 	ap->setRudderDeflection((float)Ar);
 }
 
-void FlightDirector::updateProjectedLandingPoint()
+void FlightDirector::updateProjectedDistance()
 {
-	static const double R = 3440.277; //mean Earth radius in NM.
-	double lat = degToRad(lastSample.lat);
-	double lon = degToRad(lastSample.lon);
-	double hdg = degToRad(lastSample.hdg);
 	double av = verticalSpeed.average();
-	double ag = groundSpeed.average();
-
+	double ag = max(groundSpeed.average(), 0.0);
+	
 /*	assume a nominal -1 ft/s if the average vertical speed is greater than -1 ft/s.  this
 	both protects from division by zero and effectively assumes level flight if the glider
 	is climbing.  we can recompute when the glider resumes a descent.
-
-	clamp distance to 3,000 nm.  this keeps the projected landing point from getting silly.
-	we do not actually need a perfect projected landing point.  we just need to know if the
-	glider is headed in a direction that will put it in a fenced off area.
-
-	the heading should be a true ground track so that we are taking winds into account.
+ 
+	clamp ground speed to positive values.
+	 
+	clamp distance to 3,000 nm.  this keeps the projections from getting silly.
  */
-
+	
 	av = (av > -1 ? -1 : av);
-
+	
 	projDistance = min(lastSample.alt / (-av * 60) * ag, 3000.0);
-	projLat = asin(sin(lat) * cos(projDistance / R) + cos(lat) * sin(projDistance / R) * cos(hdg));
-	projLon = lon + atan2(sin(hdg) * sin(projDistance / R) * cos(lat), cos(projDistance / R) - sin(lat) * sin(projLat));
+}
 
-/*	convert to degrees and clamp the values. */
-
-	projLat = max(min(radToDeg(projLat), 90.0), -90.0);
-	projLon = max(min(radToDeg(projLon), 180.0), -180.0);
+void FlightDirector::updateProjectedLandingPoint()
+{
+/*	the heading should be a true ground track so that we are taking winds into account. */
+	
+	getDestination(lastSample.pos, lastSample.hdg, projDistance, projLoc);
 }
 
 void FlightDirector::updateTargetHeading()
 {
-/*	try to track south on W 123 longitude using simple linear heading changes.  xtk is
-	positive when the glider is East of W 123 and negative when the glider is West of
-	W 123.  heading is ground track, so there is no reason to adjust intercept heading
-	for winds.  if the wind is blowing us away, xtk will increase and so will intercept
-	heading.  maintain a southerly track.
- */
+	int idx, targetIdx;
+	double dist, targetDist, bearing, targetBearing;
 	
-	double xtk = lastSample.lon + 123; /* W 123 = -123 */
-	targetHdg = max(min(xtk, 0.5), -0.5) * 180 + 180;
+	targetIdx = -1;
+	targetDist = DBL_MAX;
+	targetBearing = 180.0; //if all else fails, head south.
+	
+	for (idx = 0; idx < recoveryPointCount; ++idx)
+	{
+		getDistanceAndBearing(lastSample.pos, recoveryPoints[idx], dist, bearing);
+		
+		if (dist < targetDist && dist < projDistance)
+		{
+			targetIdx = idx;
+			targetDist = dist;
+			targetBearing = bearing;
+		}
+	}
+	
+	targetHdg = targetBearing;
 }
