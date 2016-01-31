@@ -1,8 +1,9 @@
 CXX=g++
 CXXFLAGS=-c -std=c++11 -O3 -Wall
+LDFLAGS=-lspatialite
 OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
  $(OBJDIR)FlightDirector.o $(OBJDIR)TimerSource.o $(OBJDIR)Utilities.o\
- $(OBJDIR)rasppi.o
+ $(OBJDIR)GISDatabase.o $(OBJDIR)rasppi.o
 SRCDIR=../
 OBJDIR=./obj/
 BINDIR=./bin/
@@ -15,7 +16,7 @@ directories:
 
 otto: $(OBJFILES)
 	@echo Linking otto...
-	@$(CXX) $(OBJFILES) -o $(BINDIR)otto
+	@$(CXX) $(OBJFILES) -o $(BINDIR)otto $(LDFLAGS)
 
 $(OBJDIR)Autopilot.o:
 	@echo Compiling Autopilot.cpp...
@@ -32,6 +33,10 @@ $(OBJDIR)DataSource.o:
 $(OBJDIR)FlightDirector.o:
 	@echo Compiling FlightDirector.cpp...
 	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)FlightDirector.o $(SRCDIR)FlightDirector.cpp
+
+$(OBJDIR)GISDatabase.o:
+	@echo Compiling GISDatabase.cpp...
+	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)GISDatabase.o $(SRCDIR)GISDatabase.cpp
 
 $(OBJDIR)TimerSource.o:
 	@echo Compiling TimerSource.cpp...
