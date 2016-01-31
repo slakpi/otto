@@ -2,16 +2,8 @@
 #include <cstring>
 #include <cfloat>
 #include "FlightDirector.hpp"
+#include "GISDatabase.hpp"
 #include "Utilities.hpp"
-
-static const Loc recoveryPoints[] = {
-	{	45.4315, -122.9425	}, // Twin Oaks
-	{	45.3093, -122.3218	}, // Valley View
-	{	44.5432, -122.9315	}, // Lebanon
-	{	44.6735, -121.16	}, // Madras
-};
-
-static const int recoveryPointCount = COUNTOF(recoveryPoints);
 
 static const unsigned int rateOfTurnDelay = 2;
 static const unsigned int verticalSpeedDelay = 5;
@@ -43,7 +35,9 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 	targetHdg(0),
 	rateOfTurn(rateOfTurnDelay),
 	verticalSpeed(verticalSpeedDelay),
-	groundSpeed(groundSpeedDelay)
+	groundSpeed(groundSpeedDelay),
+	curRecoveryLoc(-1),
+	recoveryCourse(0)
 {
 	if (ap == nullptr)
 		throw std::invalid_argument("_ap");
@@ -55,6 +49,7 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 		throw std::invalid_argument("_log");
 
 	memset(&projLoc, 0, sizeof(projLoc));
+	memset(&recoveryLoc, 0, sizeof(recoveryLoc));
 	
 	timer->setCallback(timerCallback, this);
 }
@@ -155,24 +150,5 @@ void FlightDirector::updateProjectedLandingPoint()
 
 void FlightDirector::updateTargetHeading()
 {
-	int idx, targetIdx;
-	double dist, targetDist, bearing, targetBearing;
-	
-	targetIdx = -1;
-	targetDist = DBL_MAX;
-	targetBearing = 180.0; //if all else fails, head south.
-	
-	for (idx = 0; idx < recoveryPointCount; ++idx)
-	{
-		getDistanceAndBearing(lastSample.pos, recoveryPoints[idx], dist, bearing);
-		
-		if (dist < targetDist && dist < projDistance)
-		{
-			targetIdx = idx;
-			targetDist = dist;
-			targetBearing = bearing;
-		}
-	}
-	
-	targetHdg = targetBearing;
+	targetHdg = 180.0;
 }

@@ -44,6 +44,9 @@ private:
 	AveragingBuffer rateOfTurn;
 	AveragingBuffer verticalSpeed;
 	AveragingBuffer groundSpeed;
+	int64_t curRecoveryLoc;
+	Loc recoveryLoc;
+	double recoveryCourse;
 };
 
 #endif

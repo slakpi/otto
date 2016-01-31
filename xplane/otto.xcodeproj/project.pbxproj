@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		25296E801C5E8DF700C70B02 /* GISDatabase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25296E7E1C5E8DF700C70B02 /* GISDatabase.cpp */; };
+		25296E811C5E8DF700C70B02 /* GISDatabase.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25296E7F1C5E8DF700C70B02 /* GISDatabase.hpp */; };
+		25296E831C5E8EC200C70B02 /* libspatialite.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 25296E821C5E8EC200C70B02 /* libspatialite.7.dylib */; };
 		258C0B591C135852004E72F6 /* XPLM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 258C0B581C135852004E72F6 /* XPLM.framework */; };
 		258C0B5B1C135860004E72F6 /* XPWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 258C0B5A1C135860004E72F6 /* XPWidgets.framework */; };
 		25E7A9C91C419D540054E2F4 /* Autopilot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9BD1C419D540054E2F4 /* Autopilot.cpp */; };
@@ -31,6 +34,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		25296E7E1C5E8DF700C70B02 /* GISDatabase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GISDatabase.cpp; sourceTree = "<group>"; };
+		25296E7F1C5E8DF700C70B02 /* GISDatabase.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = GISDatabase.hpp; sourceTree = "<group>"; };
+		25296E821C5E8EC200C70B02 /* libspatialite.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libspatialite.7.dylib; path = ../../../../../../usr/local/Cellar/libspatialite/4.3.0a_1/lib/libspatialite.7.dylib; sourceTree = "<group>"; };
 		258C0B4E1C135325004E72F6 /* mac.xpl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = mac.xpl; sourceTree = BUILT_PRODUCTS_DIR; };
 		258C0B581C135852004E72F6 /* XPLM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPLM.framework; path = SDK/Libraries/Mac/XPLM.framework; sourceTree = "<group>"; };
 		258C0B5A1C135860004E72F6 /* XPWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPWidgets.framework; path = SDK/Libraries/Mac/XPWidgets.framework; sourceTree = "<group>"; };
@@ -60,6 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				25296E831C5E8EC200C70B02 /* libspatialite.7.dylib in Frameworks */,
 				258C0B5B1C135860004E72F6 /* XPWidgets.framework in Frameworks */,
 				258C0B591C135852004E72F6 /* XPLM.framework in Frameworks */,
 			);
@@ -85,6 +92,7 @@
 		258C0B451C135325004E72F6 = {
 			isa = PBXGroup;
 			children = (
+				25296E821C5E8EC200C70B02 /* libspatialite.7.dylib */,
 				258C0B5A1C135860004E72F6 /* XPWidgets.framework */,
 				258C0B581C135852004E72F6 /* XPLM.framework */,
 				258C0B551C1355E3004E72F6 /* Source */,
@@ -112,6 +120,8 @@
 				25E7A9C21C419D540054E2F4 /* DataSource.hpp */,
 				25E7A9C31C419D540054E2F4 /* FlightDirector.cpp */,
 				25E7A9C41C419D540054E2F4 /* FlightDirector.hpp */,
+				25296E7E1C5E8DF700C70B02 /* GISDatabase.cpp */,
+				25296E7F1C5E8DF700C70B02 /* GISDatabase.hpp */,
 				25E7A9C51C419D540054E2F4 /* TimerSource.cpp */,
 				25E7A9C61C419D540054E2F4 /* TimerSource.hpp */,
 				25E7A9C71C419D540054E2F4 /* Utilities.cpp */,
@@ -134,6 +144,7 @@
 				25E7A9CE1C419D540054E2F4 /* DataSource.hpp in Headers */,
 				25E7A9D01C419D540054E2F4 /* FlightDirector.hpp in Headers */,
 				25E7A9DF1C419D5E0054E2F4 /* XPlaneDataSource.hpp in Headers */,
+				25296E811C5E8DF700C70B02 /* GISDatabase.hpp in Headers */,
 				25E7A9CC1C419D540054E2F4 /* AveragingBuffer.hpp in Headers */,
 				25E7A9D41C419D540054E2F4 /* Utilities.hpp in Headers */,
 			);
@@ -199,6 +210,7 @@
 				25E7A9CD1C419D540054E2F4 /* DataSource.cpp in Sources */,
 				25E7A9E21C419D5E0054E2F4 /* xplane.cpp in Sources */,
 				25E7A9D11C419D540054E2F4 /* TimerSource.cpp in Sources */,
+				25296E801C5E8DF700C70B02 /* GISDatabase.cpp in Sources */,
 				25E7A9E01C419D5E0054E2F4 /* XPlaneTimerSource.cpp in Sources */,
 				25E7A9D31C419D540054E2F4 /* Utilities.cpp in Sources */,
 				25E7A9CF1C419D540054E2F4 /* FlightDirector.cpp in Sources */,
@@ -302,8 +314,14 @@
 					"IBM=0",
 					"LIN=0",
 				);
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/CHeaders";
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/Libraries/Mac";
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/SDK/CHeaders",
+					/usr/local/include,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/SDK/Libraries/Mac",
+					/usr/local/lib,
+				);
 				PRODUCT_NAME = mac;
 			};
 			name = Debug;
@@ -326,8 +344,14 @@
 					"APL=1",
 					"XPLM210=1",
 				);
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/CHeaders";
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/Libraries/Mac";
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/SDK/CHeaders",
+					/usr/local/include,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/SDK/Libraries/Mac",
+					/usr/local/lib,
+				);
 				PRODUCT_NAME = mac;
 			};
 			name = Release;
