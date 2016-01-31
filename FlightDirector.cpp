@@ -6,7 +6,6 @@
 static const unsigned int rateOfTurnDelay = 2;
 static const unsigned int verticalSpeedDelay = 5;
 static const unsigned int groundSpeedDelay = 5;
-static const unsigned int projectionInterval = 5000;
 
 static const double maxHdgErr = 30.0;
 static const double maxRoT = 3.0;
@@ -157,11 +156,13 @@ void FlightDirector::updateProjectedLandingPoint()
 
 void FlightDirector::updateTargetHeading()
 {
-/*	try to track south on W 123 longitude using simple linear heading changes.  dLon is
+/*	try to track south on W 123 longitude using simple linear heading changes.  xtk is
 	positive when the glider is East of W 123 and negative when the glider is West of
-	W 123.
+	W 123.  heading is ground track, so there is no reason to adjust intercept heading
+	for winds.  if the wind is blowing us away, xtk will increase and so will intercept
+	heading.  maintain a southerly track.
  */
 	
-	double dLon = lastSample.lon + 123; /* W 123 = -123 */
-
+	double xtk = lastSample.lon + 123; /* W 123 = -123 */
+	targetHdg = max(min(xtk, 0.5), -0.5) * 180 + 180;
 }
