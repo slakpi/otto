@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <string>
 #include <cstring>
 #include <cfloat>
 #include "FlightDirector.hpp"
@@ -155,15 +156,16 @@ void FlightDirector::updateProjectedLandingPoint()
 void FlightDirector::updateTargetHeading()
 {
 	int64_t r;
+	std::string ident;
 	Loc l;
 	double d, b;
 	
-	targetHdg = 180.0;
+	targetHdg = lastSample.hdg;
 	
-	if (!db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, r, l))
+	if (!db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, r, ident, l))
 	{
 		if (curRecoveryLoc != -1)
-			(*log)("OTTO no longer has the glide distance to reach a recovery location.  Tracking 180.\n");
+			(*log)("OTTO no longer has the glide distance to reach a recovery location.  Holding last heading.\n");
 		
 		curRecoveryLoc = -1;
 	}
@@ -173,7 +175,7 @@ void FlightDirector::updateTargetHeading()
 		{
 			curRecoveryLoc = r;
 			recoveryLoc = l;
-			(*log)("OTTO is homing to recovery location %lld.\n", r);
+			(*log)("OTTO is homing to %s.\n", ident.c_str());
 		}
 		
 		getDistanceAndBearing(lastSample.pos, l, d, b);

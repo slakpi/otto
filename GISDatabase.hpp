@@ -2,6 +2,7 @@
 #define GISDatabase_hpp
 
 #include <sys/types.h>
+#include <string>
 #include "DataSource.hpp"
 
 class GISDatabase
@@ -20,7 +21,13 @@ private:
 public:
 	bool isOpen() const;
 	
-	bool getRecoveryLocation(const Loc &_ppos, double _hdg, double _maxDistance, int64_t &_id, Loc &_target);
+	bool getRecoveryLocation(
+	 const Loc &_ppos,
+	 double _hdg,
+	 double _maxDistance,
+	 int64_t &_id,
+	 std::string &_ident,
+	 Loc &_target);
 	
 private:
 	void *dbhandle;

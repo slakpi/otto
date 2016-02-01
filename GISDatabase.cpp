@@ -64,7 +64,13 @@ bool GISDatabase::isOpen() const
 	return (dbhandle != nullptr);
 }
 
-bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _maxDistance, int64_t &_id, Loc &_target)
+bool GISDatabase::getRecoveryLocation(
+ const Loc &_ppos,
+ double _hdg,
+ double _maxDistance,
+ int64_t &_id,
+ std::string &_ident,
+ Loc &_target)
 {
 	sqlite3 *db = (sqlite3*)dbhandle;
 	unsigned char *pposBlob;
@@ -114,6 +120,7 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 		g = gaiaFromSpatiaLiteBlobWkb(targetBlob, targetSize);
 		_target.lat = g->FirstPoint->X;
 		_target.lon = g->FirstPoint->Y;
+		_ident = (const char *)sqlite3_column_text(stmt, 1);
 		_id = sqlite3_column_int64(stmt, 0);
 	}
 	
