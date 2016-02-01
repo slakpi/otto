@@ -154,5 +154,33 @@ void FlightDirector::updateProjectedLandingPoint()
 
 void FlightDirector::updateTargetHeading()
 {
+	int64_t r;
+	Loc l;
+	double d, b;
+	
 	targetHdg = 180.0;
+	
+	if (!db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, r, l))
+	{
+		if (curRecoveryLoc != -1)
+			(*log)("OTTO no longer has the glide distance to reach a recovery location.  Tracking 180.\n");
+		
+		curRecoveryLoc = -1;
+	}
+	else
+	{
+		if (r != curRecoveryLoc)
+		{
+			curRecoveryLoc = r;
+			recoveryLoc = l;
+			(*log)("OTTO is homing to recovery location %lld.\n", r);
+		}
+		
+		getDistanceAndBearing(lastSample.pos, l, d, b);
+		
+/*	this is simple homing.  build tracking logic in. */
+		
+		targetHdg = b;
+		recoveryCourse = b;
+	}
 }
