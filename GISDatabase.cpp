@@ -92,6 +92,9 @@ bool GISDatabase::getRecoveryLocation(
 	a smarter approach will be to select the closest recovery point within +/- 45 degrees bearing
 	of the current heading.  we can use the SpatiaLite Azimuth() function to get the angle of the
 	vector from the present position to the target and adjust for heading.
+ 
+	the problem with just choosing the closest recovery point is that we may inadvertently turn
+	into a head wind a loose glide distance.
  */
 	
 	ret = sqlite3_prepare(

@@ -160,29 +160,38 @@ void FlightDirector::updateTargetHeading()
 	Loc l;
 	double d, b;
 	
-	targetHdg = lastSample.hdg;
-	
 	if (!db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, r, ident, l))
 	{
 		if (curRecoveryLoc != -1)
+		{
+			
+/*	do something smarter here.  we may way to turn +/- 90 degrees for a minute to see
+	if glide distance improves, then turn another 90 degrees in the same direction if
+	not.  combine this with limiting searches to +/- 45 degrees of the current heading
+	to avoid inadvertently turning back to the previous recovery point if glide distance
+	improves.
+ */
+			
+			targetHdg = lastSample.hdg;
 			(*log)("OTTO no longer has the glide distance to reach a recovery location.  Holding last heading.\n");
+		}
 		
 		curRecoveryLoc = -1;
 	}
 	else
 	{
+		getDistanceAndBearing(lastSample.pos, l, d, b);
+
 		if (r != curRecoveryLoc)
 		{
 			curRecoveryLoc = r;
 			recoveryLoc = l;
+			recoveryCourse = b;
 			(*log)("OTTO is homing to %s.\n", ident.c_str());
 		}
-		
-		getDistanceAndBearing(lastSample.pos, l, d, b);
 		
 /*	this is simple homing.  build tracking logic in. */
 		
 		targetHdg = b;
-		recoveryCourse = b;
 	}
 }
