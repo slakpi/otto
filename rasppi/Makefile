@@ -1,6 +1,6 @@
 CXX=g++
 CXXFLAGS=-c -std=c++11 -O3 -Wall
-LDFLAGS=-lspatialite
+LDFLAGS=-lspatialite -lsqlite3
 OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
  $(OBJDIR)FlightDirector.o $(OBJDIR)TimerSource.o $(OBJDIR)Utilities.o\
  $(OBJDIR)GISDatabase.o $(OBJDIR)rasppi.o
