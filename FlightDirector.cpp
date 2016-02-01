@@ -26,10 +26,11 @@ void FlightDirector::timerCallback(double _interval, void *_arg)
 	fd->refresh((unsigned int)(max(_interval, 0.0) * 1000 + 0.5));
 }
 
-FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_timer, LogCallback _log)
+FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_timer, GISDatabase *_db, LogCallback _log)
 :	ap(_ap),
 	data(_data),
 	timer(_timer),
+	db(_db),
 	log(_log),
 	projDistance(0),
 	targetHdg(0),
@@ -45,6 +46,8 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 		throw std::invalid_argument("_data");
 	if (timer == nullptr)
 		throw std::invalid_argument("_timer");
+	if (db == nullptr)
+		throw std::invalid_argument("_db");
 	if (log == nullptr)
 		throw std::invalid_argument("_log");
 
@@ -59,6 +62,7 @@ FlightDirector::~FlightDirector()
 	delete ap;
 	delete data;
 	delete timer;
+	delete db;
 }
 
 void FlightDirector::enable()

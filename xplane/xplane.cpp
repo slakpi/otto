@@ -2,6 +2,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <XPLM/XPLMPlugin.h>
+#include <XPLM/XPLMPlanes.h>
 #include <XPLM/XPLMUtilities.h>
 #include "FlightDirector.hpp"
 #include "XPlaneAutopilot.hpp"
@@ -31,11 +32,31 @@ static void logCallback(const char *_fmt, ...)
 
 PLUGIN_API int XPluginStart(char *_outName, char *_outSig, char *_outDesc)
 {
+	char acf[256];
+	char acfPath[256];
+	GISDatabase *db;
+	
 	strncpy(_outName, "OTTO", 256);
 	strncpy(_outSig, "org.or034.otto", 256);
 	strncpy(_outDesc, "HALO Glider Autopilot", 256);
 	
-	fd = new FlightDirector(new XPlaneAutopilot(), new XPlaneDataSource(), new XPlaneTimerSource(), logCallback);
+	XPLMGetNthAircraftModel(0, acf, acfPath);
+	XPLMExtractFileAndPath(acfPath);
+	strcat(acfPath, XPLMGetDirectorySeparator());
+	strcat(acfPath, "plugins");
+	strcat(acfPath, XPLMGetDirectorySeparator());
+	strcat(acfPath, "otto");
+	strcat(acfPath, XPLMGetDirectorySeparator());
+	strcat(acfPath, "recovery.db");
+	
+	logCallback("OTTO attempting to open recovery database: %s\n", acfPath);
+	
+	db = new GISDatabase(acfPath);
+	
+	if (!db->isOpen())
+		logCallback("OTTO failed to open recovery database.\n");
+	
+	fd = new FlightDirector(new XPlaneAutopilot(), new XPlaneDataSource(), new XPlaneTimerSource(), db, logCallback);
 
 	return 1;
 }
