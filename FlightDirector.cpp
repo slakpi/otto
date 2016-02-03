@@ -54,7 +54,7 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 
 	memset(&projLoc, 0, sizeof(projLoc));
 	memset(&recoveryLoc, 0, sizeof(recoveryLoc));
-	
+
 	timer->setCallback(timerCallback, this);
 }
 
@@ -84,9 +84,9 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 	dH = Error between "GPS" heading and target heading.
 	Ar = Rudder angle calculated from the response curve below.
  */
-	
+
 	Data d;
-	double av, Ra, Rt, dR, dH, Ar;
+	double Ra, Rt, dR, dH, Ar;
 
 	if (!data->sample(&d))
 		return;
@@ -94,10 +94,10 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 		return; /* divide by zero protection. */
 
 	Ra = rateOfTurn.pushSample((d.hdg - lastSample.hdg) * 1000 / _elapsedMilliseconds);
-	av = verticalSpeed.pushSample((d.alt - lastSample.alt) * 1000 / _elapsedMilliseconds * 60);
+	verticalSpeed.pushSample((d.alt - lastSample.alt) * 1000 / _elapsedMilliseconds * 60);
 	groundSpeed.pushSample(d.gs);
 	lastSample = d;
-		
+
 	updateProjectedDistance();
 //	updateProjectedLandingPoint();
 	updateTargetHeading();
@@ -109,21 +109,21 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 
 						  |dH|
 	  Rt = ( 1.0472941228      - 1 ) * sgn( dH )
- 
+
 	the rudder angle follows a logarithmic curve with a steeper response when the delta
 	between the target rate of turn and the actual rate of turn approaches zero.  the
 	logarithmic curve hits +/- 1 units of rudder deflection at the 3 degree per second
 	maximum rate of turn. dR is positive for right deflection and negative for left
 	deflection.
- 
+
 	  Ar = ( log10( |dR| + .33 ) + .48 ) * sgn( dR )
  */
-	
+
 	dH = fmod(fmod(targetHdg - d.hdg, 360.0) + 540.0, 360.0) - 180.0;
 	Rt = min(pow(1.0472941228, min(fabs(dH), maxHdgErr)) - 1, maxRoT) * sgn(dH);
 	dR = Rt - Ra;
 	Ar = min(log10(min(fabs(dR), maxRoT) + 0.33) + 0.48, 1.0) * sgn(dR);
-	
+
 	ap->setRudderDeflection((float)Ar);
 }
 
@@ -131,25 +131,25 @@ void FlightDirector::updateProjectedDistance()
 {
 	double av = verticalSpeed.average();
 	double ag = max(groundSpeed.average(), 0.0);
-	
+
 /*	assume a nominal -1 ft/s if the average vertical speed is greater than -1 ft/s.  this
 	both protects from division by zero and effectively assumes level flight if the glider
 	is climbing.  we can recompute when the glider resumes a descent.
- 
+
 	clamp ground speed to positive values.
-	 
+ 
 	clamp distance to 3,000 nm.  this keeps the projections from getting silly.
  */
-	
+
 	av = (av > -1 ? -1 : av);
-	
+
 	projDistance = min(lastSample.alt / (-av * 60) * ag, 3000.0);
 }
 
 void FlightDirector::updateProjectedLandingPoint()
 {
 /*	the heading should be a true ground track so that we are taking winds into account. */
-	
+
 	getDestination(lastSample.pos, lastSample.hdg, projDistance, projLoc);
 }
 
@@ -159,23 +159,23 @@ void FlightDirector::updateTargetHeading()
 	std::string ident;
 	Loc l;
 	double d, b;
-	
+
 	if (!db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, r, ident, l))
 	{
 		if (curRecoveryLoc != -1)
 		{
-			
+
 /*	do something smarter here.  we may way to turn +/- 90 degrees for a minute to see
 	if glide distance improves, then turn another 90 degrees in the same direction if
 	not.  combine this with limiting searches to +/- 45 degrees of the current heading
 	to avoid inadvertently turning back to the previous recovery point if glide distance
 	improves.
  */
-			
+
 			targetHdg = lastSample.hdg;
 			(*log)("OTTO no longer has the glide distance to reach a recovery location.  Holding last heading.\n");
 		}
-		
+
 		curRecoveryLoc = -1;
 	}
 	else
@@ -189,9 +189,9 @@ void FlightDirector::updateTargetHeading()
 			recoveryCourse = b;
 			(*log)("OTTO is homing to %s.\n", ident.c_str());
 		}
-		
+
 /*	this is simple homing.  build tracking logic in. */
-		
+
 		targetHdg = b;
 	}
 }

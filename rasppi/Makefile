@@ -2,8 +2,9 @@ CXX=g++
 CXXFLAGS=-c -std=c++11 -O3 -Wall
 LDFLAGS=-lspatialite -lsqlite3
 OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
- $(OBJDIR)FlightDirector.o $(OBJDIR)TimerSource.o $(OBJDIR)Utilities.o\
- $(OBJDIR)GISDatabase.o $(OBJDIR)rasppi.o
+ $(OBJDIR)FlightDirector.o $(OBJDIR)GISDatabase.o $(OBJDIR)TimerSource.o\
+ $(OBJDIR)Utilities.o $(OBJDIR)RpiAutopilot.o $(OBJDIR)RpiDataSource.o\
+ $(OBJDIR)RpiTimerSource.o $(OBJDIR)rasppi.o
 SRCDIR=../
 OBJDIR=./obj/
 BINDIR=./bin/
@@ -45,6 +46,18 @@ $(OBJDIR)TimerSource.o:
 $(OBJDIR)Utilities.o:
 	@echo Compiling Utilities.cpp...
 	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)Utilities.o $(SRCDIR)Utilities.cpp
+
+$(OBJDIR)RpiAutopilot.o:
+	@echo Compiling RpiAutopilot.cpp...
+	@$(CXX) $(CXXFLAGS) -I$(SRCDIR) -o $(OBJDIR)RpiAutopilot.o RpiAutopilot.cpp
+
+$(OBJDIR)RpiDataSource.o:
+	@echo Compiling RpiDataSource.cpp...
+	@$(CXX) $(CXXFLAGS) -I$(SRCDIR) -o $(OBJDIR)RpiDataSource.o RpiDataSource.cpp
+
+$(OBJDIR)RpiTimerSource.o:
+	@echo Compiling RpiTimerSource.cpp...
+	@$(CXX) $(CXXFLAGS) -I$(SRCDIR) -o $(OBJDIR)RpiTimerSource.o RpiTimerSource.cpp
 
 $(OBJDIR)rasppi.o:
 	@echo Compiling rasppi.cpp...
