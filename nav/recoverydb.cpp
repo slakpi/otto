@@ -52,7 +52,7 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 	std::string lat;
 	std::string lon;
 	LatLon latLon;
-	int field = 0, isEOL, isSep, ret, ok;
+	int field = 0, isEOL, isSep, ret, ok = 0;
 	int isFirstLine = 1;
 	double latdd, londd;
 	gaiaGeomCollPtr ptGeo;
@@ -181,7 +181,7 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 
 int main(int _argc, char* _argv[])
 {
-	int ret, ok;
+	int ret, ok = 0;
 	sqlite3 *db = 0;
 	void *cache = 0;
 
@@ -190,7 +190,7 @@ int main(int _argc, char* _argv[])
 
 	try
 	{
-		ret=sqlite3_open_v2(
+		ret = sqlite3_open_v2(
 		 _argv[1],
 		 &db,
 		 SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_EXCLUSIVE,
