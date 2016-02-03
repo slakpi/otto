@@ -9,7 +9,7 @@ SRCDIR=../
 OBJDIR=./obj/
 BINDIR=./bin/
 
-all: directories otto
+all: directories otto rdbtool recoverydb
 
 directories:
 	@mkdir -p $(OBJDIR)
@@ -18,6 +18,15 @@ directories:
 otto: $(OBJFILES)
 	@echo Linking otto...
 	@$(CXX) $(OBJFILES) -o $(BINDIR)otto $(LDFLAGS)
+
+rdbtool:
+	@echo Building recoverydb tool...
+	@$(CXX) $(CXXFLAGS) -o $(OBJDIR)recoverydb.o $(SRCDIR)nav/recoverydb.cpp
+	@$(CXX) $(OBJDIR)recoverydb.o -o $(BINDIR)recoverydb $(LDFLAGS)
+
+recoverydb:
+	@echo Building recovery database...
+	@$(BINDIR)recoverydb $(BINDIR)recovery.db $(SRCDIR)nav/recovery.csv
 
 $(OBJDIR)Autopilot.o:
 	@echo Compiling Autopilot.cpp...
@@ -65,4 +74,4 @@ $(OBJDIR)rasppi.o:
 
 clean:
 	@echo Cleaning...
-	@rm -f $(OBJFILES) $(BINDIR)otto
+	@rm -f $(OBJFILES) $(BINDIR)otto $(BINDIR)recoverydb $(BINDIR)recovery.db

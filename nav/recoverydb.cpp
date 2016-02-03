@@ -30,38 +30,14 @@ enum Field
 static int _parseCoord(const char *_str, Coord *_coord)
 {
 	char *stop = nullptr;
-	
+
 	_coord->s = 1;
 	_coord->deg = (int)strtol(_str, &stop, 10), stop++;
 	_coord->min = (int)strtol(stop, &stop, 10), stop++;
 	_coord->sec = strtod(stop, &stop);
-	
+
 	if (*stop == 'S' || *stop == 'W')
 		_coord->s = -1;
-	
-	return 0;
-}
-
-static int _icmp(const char *_str1, const char *_str2)
-{
-	char c1, c2;
-	size_t l1 = strlen(_str1);
-	size_t l2 = strlen(_str2);
-	size_t i;
-
-	if (l1 != l2)
-		return l1 - l2;
-
-	for (i = 0; i < l1; i++)
-	{
-		c1 = tolower(_str1[i]);
-		c2 = tolower(_str2[i]);
-
-		if (c1 == c2)
-			continue;
-
-		return c1 - c2;
-	}
 
 	return 0;
 }
@@ -70,25 +46,25 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 {
 	FILE *data;
 	char buf[32768];
-	size_t bytes;
+	size_t i, j, bytes;
 	std::stringstream sql;
 	std::string ident;
 	std::string lat;
 	std::string lon;
 	LatLon latLon;
-	int i, j, field, isEOL, isSep, ret, ok;
+	int field = 0, isEOL, isSep, ret, ok;
 	int isFirstLine = 1;
 	double latdd, londd;
 	gaiaGeomCollPtr ptGeo;
 	unsigned char *ptBlob;
 	int ptSize;
 	sqlite3_stmt *stmt;
-	
+
 	data = fopen(_path, "r");
-	
+
 	if (!data)
 		return -1;
-	
+
 	try
 	{
 		ret = sqlite3_prepare(
@@ -97,17 +73,17 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 		 -1,
 		 &stmt,
 		 0);
-		
+
 		if (ret != SQLITE_OK)
 			throw ret;
-	
+
 		for(;;)
 		{
 			bytes = fread(buf, sizeof(char), 32768, data);
-			
+
 			if (bytes == 0)
 				break;
-			
+
 			for(i = 0, j = 0; i < bytes; i++)
 			{
 				isEOL = (buf[i] == '\n');
@@ -138,13 +114,13 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 						lon.append(&buf[j], i - j);
 						break;
 					}
-					
+
 					j = i + 1;
-					
+
 					if (isSep)
 						field++;
 				}
-				
+
 				if (isEOL)
 				{
 					_parseCoord(lat.c_str(), &latLon.lat);
@@ -158,26 +134,26 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 					londd += latLon.lon.min / 60.0;
 					londd += latLon.lon.sec / 3600.0;
 					londd *= latLon.lon.s;
-					
+
 					ptGeo = gaiaAllocGeomColl();
 					ptGeo->Srid = 4326;
 					gaiaAddPointToGeomColl(ptGeo, latdd, londd);
 					gaiaToSpatiaLiteBlobWkb(ptGeo, &ptBlob, &ptSize);
 					gaiaFreeGeomColl(ptGeo);
-					
+
 					sqlite3_reset(stmt);
 					sqlite3_clear_bindings(stmt);
 
 					if (ident.size() > 0)
 						sqlite3_bind_text(stmt, 1, &(*ident.begin()), -1, 0);
-					
+
 					sqlite3_bind_blob(stmt, 2, ptBlob, ptSize, free);
-					
+
 					ret = sqlite3_step(stmt);
 
 					if (ret != SQLITE_DONE && ret != SQLITE_ROW)
 						throw ret;
-						
+
 					ident.clear();
 					lat.clear();
 					lon.clear();
@@ -192,25 +168,25 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 	catch (int)
 	{
 	}
-	
+
 	if (stmt)
 		sqlite3_finalize(stmt);
 	if (data)
 		fclose(data);
 	if (ok)
 		return 0;
-	
+
 	return -1;
 }
 
 int main(int _argc, char* _argv[])
 {
 	int ret, ok;
-	sqlite3 *db;
-	void *cache;
+	sqlite3 *db = 0;
+	void *cache = 0;
 
 	if (_argc < 3)
-		return -1;	
+		return -1;
 
 	try
 	{
@@ -219,10 +195,10 @@ int main(int _argc, char* _argv[])
 		 &db,
 		 SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_EXCLUSIVE,
 		 0);
-		
+
 		if (ret != SQLITE_OK)
 			throw ret;
-			
+
 		cache = spatialite_alloc_connection();
 		spatialite_init_ex(db, cache, 0);
 
@@ -232,7 +208,7 @@ int main(int _argc, char* _argv[])
 		 0,
 		 0,
 		 0);
-		 
+
 		if (ret != SQLITE_OK)
 			throw ret;
 
@@ -247,24 +223,24 @@ int main(int _argc, char* _argv[])
 
 		if (ret != SQLITE_OK)
 			throw ret;
-			
+
 		ret = sqlite3_exec(
 		 db,
 		 "SELECT AddGeometryColumn('Recovery', 'location', 4326, 'POINT', 'XY', 0)",
 		 0,
 		 0,
 		 0);
-		 
+
 		if (ret != SQLITE_OK)
 			throw ret;
-			
+
 		ret = sqlite3_exec(
 		 db,
 		 "SELECT CreateMbrCache('Recovery', 'location')",
 		 0,
 		 0,
 		 0);
-		 
+
 		if (ret != SQLITE_OK)
 			throw ret;
 
@@ -274,7 +250,7 @@ int main(int _argc, char* _argv[])
 	catch (int)
 	{
 	}
-	
+
 	if (db)
 	{
 		sqlite3_close(db);
@@ -283,6 +259,6 @@ int main(int _argc, char* _argv[])
 	}
 	if (ok)
 		return 0;
-	
+
 	return -1;
 }
