@@ -55,7 +55,7 @@ PLUGIN_API int XPluginStart(char *_outName, char *_outSig, char *_outDesc)
  */
 	
 	if (dladdr((const void*)XPluginStart, &info) == 0)
-		logCallback("OTTO failed to get module path.\n");
+		logCallback("OTTO: failed to get module path.\n");
 	else
 	{
 		strncpy(path, info.dli_fname, 512);
@@ -65,12 +65,12 @@ PLUGIN_API int XPluginStart(char *_outName, char *_outSig, char *_outDesc)
 	}
 #endif
 	
-	logCallback("OTTO attempting to open recovery database: %s\n", path);
+	logCallback("OTTO: attempting to open recovery database: %s\n", path);
 	
 	db = new GISDatabase(path);
 	
 	if (!db->isOpen())
-		logCallback("OTTO failed to open recovery database.\n");
+		logCallback("OTTO: failed to open recovery database.\n");
 	
 	fd = new FlightDirector(new XPlaneAutopilot(), new XPlaneDataSource(), new XPlaneTimerSource(), db, logCallback);
 

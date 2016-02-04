@@ -51,7 +51,7 @@ double crossTrackError(const Loc &_origin, const Loc &_dest, const Loc &_ppos)
 	double d12, d13, t12, t13;
 	
 	_getDistanceAndBearing(_origin, _dest, d12, t12);
-	_getDistanceAndBearing(_origin, _dest, d13, t13);
+	_getDistanceAndBearing(_origin, _ppos, d13, t13);
 	
 	return asin(sin(d13) * sin(t13 - t12)) * R;
 }

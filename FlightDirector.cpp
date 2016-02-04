@@ -33,12 +33,13 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 	timer(_timer),
 	db(_db),
 	log(_log),
+	mode(seekMode),
 	projDistance(0),
 	targetHdg(0),
 	rateOfTurn(rateOfTurnDelay),
 	verticalSpeed(verticalSpeedDelay),
 	groundSpeed(groundSpeedDelay),
-	curRecoveryLoc(-1),
+	recoveryLocId(-1),
 	recoveryCourse(0)
 {
 	if (ap == nullptr)
@@ -54,6 +55,7 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 
 	memset(&projLoc, 0, sizeof(projLoc));
 	memset(&recoveryLoc, 0, sizeof(recoveryLoc));
+	memset(&originLoc, 0, sizeof(originLoc));
 
 	timer->setCallback(timerCallback, this);
 }
@@ -155,15 +157,31 @@ void FlightDirector::updateProjectedLandingPoint()
 
 void FlightDirector::updateTargetHeading()
 {
-	int64_t r;
+	int64_t r = recoveryLocId;
 	std::string ident;
-	Loc l;
-	double d, b;
+	Loc l = recoveryLoc;
+	double d = 0, b = 0, x, a, ag = max(groundSpeed.average(), 0.1);
 
-	if (!db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, r, ident, l))
+	if (mode != seekMode)
+		getDistanceAndBearing(lastSample.pos, recoveryLoc, d, b);
+	
+	if (mode == seekMode || d > projDistance)
 	{
-		if (curRecoveryLoc != -1)
+		if (db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, r, ident, l))
 		{
+			getDistanceAndBearing(lastSample.pos, l, d, b);
+
+			mode = trackMode;
+			recoveryLocId = r;
+			recoveryLoc = l;
+			originLoc = lastSample.pos;
+			recoveryCourse = b;
+			(*log)("OTTO: tracking to %s on a course of %.0f.\n", ident.c_str(), b);
+		}
+		else
+		{
+			if (recoveryLocId != -1)
+			{
 
 /*	do something smarter here.  we may way to turn +/- 90 degrees for a minute to see
 	if glide distance improves, then turn another 90 degrees in the same direction if
@@ -172,26 +190,55 @@ void FlightDirector::updateTargetHeading()
 	improves.
  */
 
-			targetHdg = lastSample.hdg;
-			(*log)("OTTO no longer has the glide distance to reach a recovery location.  Holding last heading.\n");
-		}
+				mode = seekMode;
+				recoveryLocId = -1;
+				targetHdg = lastSample.hdg;
+				(*log)("OTTO: no longer has the glide distance to reach a recovery location.  Holding last heading.\n");
+			}
 
-		curRecoveryLoc = -1;
+			return;
+		}
 	}
-	else
+	
+	if (mode == trackMode && d <= 1)
 	{
-		getDistanceAndBearing(lastSample.pos, l, d, b);
+		mode = circleMode;
+		(*log)("OTTO: entering circle mode over recovery location.\n");
+	}
+	else if (mode == circleMode && d > 1)
+	{
+		mode = trackMode;
+		originLoc = lastSample.pos;
+		recoveryCourse = b;
+		(*log)("OTTO: tracking back to recovery location on new course of %.0f\n", b);
+	}
+	
+	switch (mode)
+	{
+		case trackMode:
+			
+/*	calculate the cross-track error, then use a linear forumla to calculate an intercept
+	correction based on the amount of time, in minutes, required to cover the cross-track
+	error distance.
+ 
+	       x * 60     90 degrees
+	  a = -------- * ------------
+	         GS        2 minutes
 
-		if (r != curRecoveryLoc)
-		{
-			curRecoveryLoc = r;
-			recoveryLoc = l;
-			recoveryCourse = b;
-			(*log)("OTTO is homing to %s.\n", ident.c_str());
-		}
-
-/*	this is simple homing.  build tracking logic in. */
-
-		targetHdg = b;
+	cross-track error is negative when left of course and positive when right of course,
+	so subtract the intercept correction.
+ */
+ 
+			x = crossTrackError(originLoc, recoveryLoc, lastSample.pos);
+			a = min(x * 60.0 / ag * 45.0, 90.0);
+			targetHdg = fmod(fmod(recoveryCourse - a, 360.0) + 360.0, 360.0);
+			(*log)("OTTO: xtk: %.1f, a: %.1f, hdg: %.1f\n", x, a, targetHdg);
+			break;
+		case circleMode:
+			targetHdg = b;
+			break;
+		default:
+			(*log)("OTTO: invalid flight director mode case.\n");
+			break;
 	}
 }

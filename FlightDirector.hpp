@@ -12,6 +12,14 @@ typedef void (*LogCallback)(const char *_fmt, ...);
 class FlightDirector
 {
 private:
+	enum Mode
+	{
+		seekMode,
+		trackMode,
+		circleMode
+	};
+	
+private:
 	static void timerCallback(double _interval, void *_arg);
 	
 public:
@@ -40,14 +48,16 @@ private:
 	TimerSource *timer;
 	GISDatabase *db;
 	LogCallback log;
+	Mode mode;
 	Data lastSample;
 	Loc projLoc;
 	double projDistance, targetHdg;
 	AveragingBuffer rateOfTurn;
 	AveragingBuffer verticalSpeed;
 	AveragingBuffer groundSpeed;
-	int64_t curRecoveryLoc;
+	int64_t recoveryLocId;
 	Loc recoveryLoc;
+	Loc originLoc;
 	double recoveryCourse;
 };
 
