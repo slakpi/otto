@@ -24,7 +24,8 @@ enum Field
 	aptInvalidField = -1,
 	aptIdent = 0,
 	aptLatitude = 1,
-	aptLongitude = 2
+	aptLongitude = 2,
+	aptElev = 3
 };
 
 static int _parseCoord(const char *_str, Coord *_coord)
@@ -51,11 +52,11 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 	std::string ident;
 	std::string lat;
 	std::string lon;
+	std::string elev;
 	LatLon latLon;
 	int field = 0, isEOL, isSep, ret, ok = 0;
 	int isFirstLine = 1;
-	double latdd, londd;
-	gaiaGeomCollPtr ptGeo;
+	double latdd, londd, elevd;
 	unsigned char *ptBlob;
 	int ptSize;
 	sqlite3_stmt *stmt;
@@ -69,7 +70,7 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 	{
 		ret = sqlite3_prepare(
 		 _db,
-		 "INSERT INTO Recovery(ident, location) VALUES(?, ?)",
+		 "INSERT INTO Recovery(ident, elev, location) VALUES(?, ?, ?)",
 		 -1,
 		 &stmt,
 		 0);
@@ -113,6 +114,9 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 					case aptLongitude:
 						lon.append(&buf[j], i - j);
 						break;
+					case aptElev:
+						elev.append(&buf[j], i - j);
+						break;
 					}
 
 					j = i + 1;
@@ -123,6 +127,11 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 
 				if (isEOL)
 				{
+					sqlite3_reset(stmt);
+					sqlite3_clear_bindings(stmt);
+
+					elevd = strtod(elev.c_str(), 0);
+				
 					_parseCoord(lat.c_str(), &latLon.lat);
 					latdd = latLon.lat.deg;
 					latdd += latLon.lat.min / 60.0;
@@ -135,19 +144,13 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 					londd += latLon.lon.sec / 3600.0;
 					londd *= latLon.lon.s;
 
-					ptGeo = gaiaAllocGeomColl();
-					ptGeo->Srid = 4326;
-					gaiaAddPointToGeomColl(ptGeo, latdd, londd);
-					gaiaToSpatiaLiteBlobWkb(ptGeo, &ptBlob, &ptSize);
-					gaiaFreeGeomColl(ptGeo);
-
-					sqlite3_reset(stmt);
-					sqlite3_clear_bindings(stmt);
+					gaiaMakePoint(londd, latdd, 4326, &ptBlob, &ptSize);
 
 					if (ident.size() > 0)
 						sqlite3_bind_text(stmt, 1, &(*ident.begin()), -1, 0);
 
-					sqlite3_bind_blob(stmt, 2, ptBlob, ptSize, free);
+					sqlite3_bind_double(stmt, 2, elevd);
+					sqlite3_bind_blob(stmt, 3, ptBlob, ptSize, free);
 
 					ret = sqlite3_step(stmt);
 
@@ -157,6 +160,7 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 					ident.clear();
 					lat.clear();
 					lon.clear();
+					elev.clear();
 					field = 0;
 					j = i + 1;
 				}
@@ -216,7 +220,8 @@ int main(int _argc, char* _argv[])
 		 db,
 		 "CREATE TABLE Recovery( "
 		 " pkid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-		 " ident TEXT NOT NULL);",
+		 " ident TEXT NOT NULL, "
+		 " elev DOUBLE DEFAULT 0);",
 		 0,
 		 0,
 		 0);

@@ -64,44 +64,38 @@ bool GISDatabase::isOpen() const
 	return (dbhandle != nullptr);
 }
 
-bool GISDatabase::getRecoveryLocation(
- const Loc &_ppos,
- double _hdg,
- double _maxDistance,
- int64_t &_id,
- std::string &_ident,
- Loc &_target)
+bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _maxDistance, RecoveryLocation &_loc)
 {
 	sqlite3 *db = (sqlite3*)dbhandle;
 	unsigned char *pposBlob;
 	const unsigned char *targetBlob;
 	int pposSize, targetSize;
+	double azMin, azMax;
 	gaiaGeomCollPtr g;
 	sqlite3_stmt *stmt;
 	int ret;
 	
-	_id = -1;
+	_loc.id = -1;
 	
 	if (!isOpen())
 		return false;
 
 /*	select all recovery locations within the glide distance.  order them in ascending order so that
 	we pick the closest one.  the SpatiaLite function Distance() returns angular distance using
-	SRID 4326 rather than projected distance in meters.  but, that's ok.
+	SRID 4326 rather than projected distance in meters.  but, that's ok, we only need relative
+	ordering.
  
-	a smarter approach will be to select the closest recovery point within +/- 45 degrees bearing
-	of the current heading.  we can use the SpatiaLite Azimuth() function to get the angle of the
-	vector from the present position to the target and adjust for heading.
- 
-	the problem with just choosing the closest recovery point is that we may inadvertently turn
-	into a head wind a loose glide distance.
+	limit the search to the ground track +/- 45 degrees.  the flight director can use this to
+	avoid projecting a distance ring based on a tail wind and then turning into the wind.
  */
 	
 	ret = sqlite3_prepare(
 	 db,
-	 "SELECT pkid, ident, location FROM recovery "
-	 "WHERE PtDistWithin(location, ?, ?) = 1 "
-	 "ORDER BY Distance(location, ?) ASC",
+	 "SELECT pkid, ident, elev, location FROM recovery "
+	 "WHERE PtDistWithin(location, ?1, ?2) = 1 AND "
+	 " Azimuth(location, ?1) >= ?3 AND "
+	 " Azimuth(location, ?1) <= ?4 "
+	 "ORDER BY Distance(location, ?1) ASC",
 	 -1,
 	 &stmt,
 	 nullptr);
@@ -109,26 +103,31 @@ bool GISDatabase::getRecoveryLocation(
 	if (ret != SQLITE_OK)
 		return false;
 	
-	gaiaMakePoint(_ppos.lat, _ppos.lon, 4326, &pposBlob, &pposSize);
-	sqlite3_bind_blob(stmt, 1, pposBlob, pposSize, 0);
+	azMin = degToRad(fmod(fmod(_hdg - 45.0, 360.0) + 360.0, 360.0));
+	azMax = degToRad(fmod(_hdg + 360.0, 360.0));
+	gaiaMakePoint(_ppos.lon, _ppos.lat, 4326, &pposBlob, &pposSize);
+	
+	sqlite3_bind_blob(stmt, 1, pposBlob, pposSize, free);
 	sqlite3_bind_double(stmt, 2, _maxDistance * nm2m);
-	sqlite3_bind_blob(stmt, 3, pposBlob, pposSize, 0);
+	sqlite3_bind_double(stmt, 3, azMin);
+	sqlite3_bind_double(stmt, 4, azMax);
 	
 	ret = sqlite3_step(stmt);
 
 	if (ret == SQLITE_ROW)
 	{
-		targetSize = sqlite3_column_bytes(stmt, 2);
-		targetBlob = (const unsigned char*)sqlite3_column_blob(stmt, 2);
+		targetSize = sqlite3_column_bytes(stmt, 3);
+		targetBlob = (const unsigned char*)sqlite3_column_blob(stmt, 3);
 		g = gaiaFromSpatiaLiteBlobWkb(targetBlob, targetSize);
-		_target.lat = g->FirstPoint->X;
-		_target.lon = g->FirstPoint->Y;
-		_ident = (const char *)sqlite3_column_text(stmt, 1);
-		_id = sqlite3_column_int64(stmt, 0);
+		_loc.pos.lat = g->FirstPoint->Y;
+		_loc.pos.lon = g->FirstPoint->X;
+		_loc.elev = sqlite3_column_double(stmt, 2);
+		_loc.ident = (const char *)sqlite3_column_text(stmt, 1);
+		_loc.id = sqlite3_column_int64(stmt, 0);
 	}
 	
 	sqlite3_finalize(stmt);
 	free(pposBlob);
 	
-	return (_id >= 0);
+	return (_loc.id >= 0);
 }

@@ -5,6 +5,14 @@
 #include <string>
 #include "DataSource.hpp"
 
+struct RecoveryLocation
+{
+	int64_t id;
+	std::string ident;
+	Loc pos;
+	double elev;
+};
+
 class GISDatabase
 {
 public:
@@ -21,13 +29,7 @@ private:
 public:
 	bool isOpen() const;
 	
-	bool getRecoveryLocation(
-	 const Loc &_ppos,
-	 double _hdg,
-	 double _maxDistance,
-	 int64_t &_id,
-	 std::string &_ident,
-	 Loc &_target);
+	bool getRecoveryLocation(const Loc &_ppos, double _hdg, double _maxDistance, RecoveryLocation &_loc);
 	
 private:
 	void *dbhandle;
