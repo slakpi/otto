@@ -12,6 +12,16 @@ static const unsigned int groundSpeedDelay = 5;
 
 static const double maxHdgErr = 30.0;
 static const double maxRoT = 3.0;
+static const double minAltAGL = 5000.0;
+
+static inline double maxCircleDistance(double _gs)
+{
+/*	10 nm = 2 minutes at 300 kts ground speed.
+	1.6 nm ~ 2 minutes at 50 kts ground speed.
+ */
+	
+	return (min(max(_gs, 50.0), 300.0) - 50) * ((10 - 1.6) / 250.0) + 1.6;
+}
 
 void FlightDirector::timerCallback(double _interval, void *_arg)
 {
@@ -39,8 +49,8 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 	rateOfTurn(rateOfTurnDelay),
 	verticalSpeed(verticalSpeedDelay),
 	groundSpeed(groundSpeedDelay),
-	recoveryLocId(-1),
-	recoveryCourse(0)
+	recoveryCourse(0),
+	seekCourseTime(0)
 {
 	if (ap == nullptr)
 		throw std::invalid_argument("_ap");
@@ -80,10 +90,10 @@ void FlightDirector::disable()
 
 void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 {
-/*	Ra = Actual rate-of-turn derived from an averaged rate of "GPS" heading change.
+/*	Ra = Actual rate-of-turn derived from an averaged rate of GPS heading change.
 	Rt = Target rate-of-turn calculated from the response curve below.
 	dR = Rate-of-turn error (Rt - Ra).
-	dH = Error between "GPS" heading and target heading.
+	dH = Error between GPS heading and target heading.
 	Ar = Rudder angle calculated from the response curve below.
  */
 
@@ -100,9 +110,8 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 	groundSpeed.pushSample(d.gs);
 	lastSample = d;
 
-	updateProjectedDistance();
-//	updateProjectedLandingPoint();
-	updateTargetHeading();
+	updateProjectedDistance(_elapsedMilliseconds);
+	updateHeading(_elapsedMilliseconds);
 
 /*	the target rate-of-turn follows an exponential curve designed to hit +/- 3 degrees per
 	second at a heading error of +/- 30 degrees.  an exponential curve gives us a reponse
@@ -129,10 +138,11 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 	ap->setRudderDeflection((float)Ar);
 }
 
-void FlightDirector::updateProjectedDistance()
+void FlightDirector::updateProjectedDistance(unsigned int _elapsedMilliseconds)
 {
 	double av = verticalSpeed.average();
 	double ag = max(groundSpeed.average(), 0.0);
+	double agl = lastSample.alt;
 
 /*	assume a nominal -1 ft/s if the average vertical speed is greater than -1 ft/s.  this
 	both protects from division by zero and effectively assumes level flight if the glider
@@ -145,78 +155,102 @@ void FlightDirector::updateProjectedDistance()
 
 	av = (av > -1 ? -1 : av);
 
-	projDistance = min(lastSample.alt / (-av * 60) * ag, 3000.0);
+	if (recoveryLoc.id != -1)
+		agl -= recoveryLoc.elev;
+	
+	projDistance = min(agl / (-av * 60) * ag, 3000.0);
 }
 
-void FlightDirector::updateProjectedLandingPoint()
+void FlightDirector::updateProjectedLandingPoint(unsigned int _elapsedMilliseconds)
 {
 /*	the heading should be a true ground track so that we are taking winds into account. */
 
 	getDestination(lastSample.pos, lastSample.hdg, projDistance, projLoc);
 }
 
-void FlightDirector::updateTargetHeading()
+void FlightDirector::updateHeading(unsigned int _elapsedMilliseconds)
 {
-	int64_t r = recoveryLocId;
-	std::string ident;
-	Loc l = recoveryLoc;
-	double d = 0, b = 0, x, a, ag = max(groundSpeed.average(), 0.1);
-
-	if (mode != seekMode)
-		getDistanceAndBearing(lastSample.pos, recoveryLoc, d, b);
+	double dis = 0, brg = 0;
 	
-	if (mode == seekMode || d > projDistance)
+	if (mode == trackMode || mode == circleMode)
 	{
-		if (db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, r, ident, l))
+		getDistanceAndBearing(lastSample.pos, recoveryLoc.pos, dis, brg);
+		
+		if (dis > projDistance && lastSample.alt - recoveryLoc.elev > minAltAGL)
 		{
-			getDistanceAndBearing(lastSample.pos, l, d, b);
-
-			mode = trackMode;
-			recoveryLocId = r;
-			recoveryLoc = l;
-			originLoc = lastSample.pos;
-			recoveryCourse = b;
-			(*log)("OTTO: tracking to %s on a course of %.0f.\n", ident.c_str(), b);
-		}
-		else
-		{
-			if (recoveryLocId != -1)
-			{
-
-/*	do something smarter here.  we may way to turn +/- 90 degrees for a minute to see
-	if glide distance improves, then turn another 90 degrees in the same direction if
-	not.  combine this with limiting searches to +/- 45 degrees of the current heading
-	to avoid inadvertently turning back to the previous recovery point if glide distance
-	improves.
+			
+/*	if the distance to the current recovery point is greater than our projected glide
+	distance, go back into seek mode.  UNLESS we are below 5000 feet AGL.  in that
+	case, just keep heading toward the recovery location.
  */
-
-				mode = seekMode;
-				recoveryLocId = -1;
-				targetHdg = lastSample.hdg;
-				(*log)("OTTO: no longer has the glide distance to reach a recovery location.  Holding last heading.\n");
-			}
-
-			return;
+			
+			mode = seekMode;
+			recoveryLoc.id = -1;
+			seekCourseTime = 0;
+			(*log)("OTTO: no longer able to make %s, entering seek mode.\n", recoveryLoc.ident.c_str());
 		}
-	}
-	
-	if (mode == trackMode && d <= 1)
-	{
-		mode = circleMode;
-		(*log)("OTTO: entering circle mode over recovery location.\n");
-	}
-	else if (mode == circleMode && d > 1)
-	{
-		mode = trackMode;
-		originLoc = lastSample.pos;
-		recoveryCourse = b;
-		(*log)("OTTO: tracking back to recovery location on new course of %.0f\n", b);
 	}
 	
 	switch (mode)
 	{
+		case seekMode:
+			updateHeadingSeekMode(_elapsedMilliseconds);
+			break;
 		case trackMode:
-			
+			updateHeadingTrackMode(_elapsedMilliseconds, dis, brg);
+			break;
+		case circleMode:
+			updateHeadingCircleMode(_elapsedMilliseconds, dis, brg);
+			break;
+	}
+}
+
+void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
+{
+	RecoveryLocation loc;
+	double dis, brg;
+	
+	if (db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, loc))
+	{
+		getDistanceAndBearing(lastSample.pos, loc.pos, dis, brg);
+		
+		mode = trackMode;
+		recoveryLoc = loc;
+		originLoc = lastSample.pos;
+		recoveryCourse = brg;
+		(*log)("OTTO: tracking to %s (elev. %.1f) on a course of %.0f.\n", loc.ident.c_str(), loc.elev, brg);
+	}
+	else
+	{
+		
+/*	fly a box pattern with 2 minute legs. */
+		
+		seekCourseTime += _elapsedMilliseconds;
+		
+		if (seekCourseTime >= 120000)
+		{
+			targetHdg = fmod(targetHdg + 90.0, 360.0);
+			seekCourseTime = 0;
+		}
+	}
+}
+
+void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double dis, double brg)
+{
+	double x, a, ag = groundSpeed.average();
+	
+/*	use a linear scale to determine when to enter circle mode.  at 50 kts or less, circle
+	at 1 nm or less.  at 500 kts or more, circle at 10 nm or less.
+ */
+	
+	if (dis <= maxCircleDistance(ag))
+	{
+		mode = circleMode;
+		(*log)("OTTO: entering circle mode around %s.\n", recoveryLoc.ident.c_str());
+		
+		return;
+	}
+	
 /*	calculate the cross-track error, then use a linear forumla to calculate an intercept
 	correction based on the amount of time, in minutes, required to cover the cross-track
 	error distance.
@@ -229,16 +263,21 @@ void FlightDirector::updateTargetHeading()
 	so subtract the intercept correction.
  */
  
-			x = crossTrackError(originLoc, recoveryLoc, lastSample.pos);
-			a = min(x * 60.0 / ag * 45.0, 90.0);
-			targetHdg = fmod(fmod(recoveryCourse - a, 360.0) + 360.0, 360.0);
-			(*log)("OTTO: xtk: %.1f, a: %.1f, hdg: %.1f\n", x, a, targetHdg);
-			break;
-		case circleMode:
-			targetHdg = b;
-			break;
-		default:
-			(*log)("OTTO: invalid flight director mode case.\n");
-			break;
+	x = crossTrackError(originLoc, recoveryLoc.pos, lastSample.pos);
+	a = min(x * 60.0 / ag * 45.0, 90.0);
+	targetHdg = fmod(fmod(recoveryCourse - a, 360.0) + 360.0, 360.0);
+}
+
+void FlightDirector::updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double dis, double brg)
+{
+	if (dis > maxCircleDistance(groundSpeed.average()))
+	{
+		mode = trackMode;
+		recoveryCourse = brg;
+		(*log)("OTTO: entering track mode to %s on a new course of %.0f.\n", recoveryLoc.ident.c_str(), brg);
+		
+		return;
 	}
+	
+	targetHdg = brg;
 }

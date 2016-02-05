@@ -36,11 +36,17 @@ public:
 	void refresh(unsigned int _elapsedMilliseconds);
 	
 private:
-	void updateProjectedDistance();
+	void updateProjectedDistance(unsigned int _elapsedMilliseconds);
 	
-	void updateProjectedLandingPoint();
+	void updateProjectedLandingPoint(unsigned int _elapsedMilliseconds);
 	
-	void updateTargetHeading();
+	void updateHeading(unsigned int _elapsedMilliseconds);
+	
+	void updateHeadingSeekMode(unsigned int _elapsedMilliseconds);
+	
+	void updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double dis, double brg);
+	
+	void updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double dis, double brg);
 	
 private:
 	Autopilot *ap;
@@ -55,10 +61,10 @@ private:
 	AveragingBuffer rateOfTurn;
 	AveragingBuffer verticalSpeed;
 	AveragingBuffer groundSpeed;
-	int64_t recoveryLocId;
-	Loc recoveryLoc;
 	Loc originLoc;
+	RecoveryLocation recoveryLoc;
 	double recoveryCourse;
+	unsigned int seekCourseTime;
 };
 
 #endif
