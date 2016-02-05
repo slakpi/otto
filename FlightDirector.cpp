@@ -22,14 +22,14 @@ static inline double interceptCorrection(double _hdg, double _err, double _gs)
 	return fmod(fmod(_hdg - min(_err * 60.0 / _gs * 45.0, 90.0), 360.0) + 360.0, 360.0);
 }
 
-static inline double maxCircleDistance(double _gs)
+static inline double maxCircleDistance(double _projDistance)
 {
 	
-/*	10 nm = 2 minutes at 300 kts ground speed.
-	1.6 nm ~ 2 minutes at 50 kts ground speed.
+/*	tighten the circle as projected distance decreases.  circle at a maximum of
+	10 nm and a minimum of 1 nm.
  */
 	
-	return (min(max(_gs, 50.0), 300.0) - 50) * ((10 - 1.6) / 250.0) + 1.6;
+	return max(min(_projDistance / 2.0 - 1.0, 10.0), 1.0);
 }
 
 void FlightDirector::timerCallback(double _interval, void *_arg)
@@ -246,15 +246,9 @@ void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
 
 void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double dis, double brg)
 {
-	double md, x, ag = groundSpeed.average();
-	
-/*	use a linear scale to determine when to enter circle mode.  at 50 kts or less, circle
-	at 1 nm or less.  at 500 kts or more, circle at 10 nm or less.
- */
-	
-	md = maxCircleDistance(ag);
-	
-	if (dis <= md + md * 0.25)
+	double x, ag = groundSpeed.average(), md = maxCircleDistance(projDistance);
+
+	if (dis <= md + 2.0)
 	{
 		mode = circleMode;
 		(*log)("OTTO: entering circle mode around %s.\n", recoveryLoc.ident.c_str());
@@ -280,11 +274,9 @@ void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, d
 
 void FlightDirector::updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double dis, double brg)
 {
-	double md, ag = groundSpeed.average();
+	double ag = groundSpeed.average(), md = maxCircleDistance(projDistance);
 	
-	md = maxCircleDistance(ag);
-	
-	if (dis > md + md * 0.25)
+	if (dis > md + 2.0)
 	{
 		mode = trackMode;
 		recoveryCourse = brg;

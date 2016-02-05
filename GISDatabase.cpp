@@ -89,7 +89,7 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 	avoid projecting a distance ring based on a tail wind and then turning into the wind.
  */
 	
-	ret = sqlite3_prepare(
+	ret = sqlite3_prepare_v2(
 	 db,
 	 "SELECT pkid, ident, elev, location FROM recovery "
 	 "WHERE PtDistWithin(location, ?1, ?2) = 1 AND "
