@@ -44,6 +44,12 @@ void getDistanceAndBearing(const Loc &_pos1, const Loc &_pos2, double &_distance
 	_getDistanceAndBearing(_pos1, _pos2, d, t);
 	_distance = R * d;
 	_bearing = radToDeg(t);
+	
+/*	_getDistanceAndBearing() outputs a bearing in the range (-PI, PI].  after converting to
+	degrees, normalize the degrees to [0, 360).
+ */
+	
+	_bearing = (_bearing < 0.0 ? _bearing + 360.0 : _bearing);
 }
 
 double crossTrackError(const Loc &_origin, const Loc &_dest, const Loc &_ppos)
