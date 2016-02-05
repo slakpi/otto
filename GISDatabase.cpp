@@ -107,7 +107,7 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 	azMax = degToRad(fmod(_hdg + 360.0, 360.0));
 	gaiaMakePoint(_ppos.lon, _ppos.lat, 4326, &pposBlob, &pposSize);
 	
-	sqlite3_bind_blob(stmt, 1, pposBlob, pposSize, free);
+	sqlite3_bind_blob(stmt, 1, pposBlob, pposSize, 0);
 	sqlite3_bind_double(stmt, 2, _maxDistance * nm2m);
 	sqlite3_bind_double(stmt, 3, azMin);
 	sqlite3_bind_double(stmt, 4, azMax);
