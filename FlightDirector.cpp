@@ -14,8 +14,17 @@ static const double maxHdgErr = 30.0;
 static const double maxRoT = 3.0;
 static const double minAltAGL = 5000.0;
 
+static inline double interceptCorrection(double _hdg, double _err, double _gs)
+{
+	
+/*	90 degree correction when 2 minutes off course. */
+	
+	return fmod(fmod(_hdg - min(_err * 60.0 / _gs * 45.0, 90.0), 360.0) + 360.0, 360.0);
+}
+
 static inline double maxCircleDistance(double _gs)
 {
+	
 /*	10 nm = 2 minutes at 300 kts ground speed.
 	1.6 nm ~ 2 minutes at 50 kts ground speed.
  */
@@ -237,13 +246,15 @@ void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
 
 void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double dis, double brg)
 {
-	double x, a, ag = groundSpeed.average();
+	double md, x, ag = groundSpeed.average();
 	
 /*	use a linear scale to determine when to enter circle mode.  at 50 kts or less, circle
 	at 1 nm or less.  at 500 kts or more, circle at 10 nm or less.
  */
 	
-	if (dis <= maxCircleDistance(ag))
+	md = maxCircleDistance(ag);
+	
+	if (dis <= md + md * 0.25)
 	{
 		mode = circleMode;
 		(*log)("OTTO: entering circle mode around %s.\n", recoveryLoc.ident.c_str());
@@ -264,13 +275,16 @@ void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, d
  */
  
 	x = crossTrackError(originLoc, recoveryLoc.pos, lastSample.pos);
-	a = min(x * 60.0 / ag * 45.0, 90.0);
-	targetHdg = fmod(fmod(recoveryCourse - a, 360.0) + 360.0, 360.0);
+	targetHdg = interceptCorrection(recoveryCourse, x, ag);
 }
 
 void FlightDirector::updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double dis, double brg)
 {
-	if (dis > maxCircleDistance(groundSpeed.average()))
+	double md, ag = groundSpeed.average();
+	
+	md = maxCircleDistance(ag);
+	
+	if (dis > md + md * 0.25)
 	{
 		mode = trackMode;
 		recoveryCourse = brg;
@@ -279,5 +293,7 @@ void FlightDirector::updateHeadingCircleMode(unsigned int _elapsedMilliseconds, 
 		return;
 	}
 	
-	targetHdg = brg;
+/*	maintain a constant distance circle around the recovery location. */
+	
+	targetHdg = interceptCorrection(brg + 90.0, dis - md, ag);
 }
