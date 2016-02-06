@@ -22,11 +22,12 @@ public:
 public:
 	virtual float getRudderDeflection() const;
 	
-	virtual void setRudderDeflection(float _deflection);
+	virtual void setRudderDeflection(float _deflection, float _hdg);
 	
 private:
 	XPLMDataRef fltCtrlOverrideRef;
 	XPLMDataRef rudderDeflectionRef;
+	XPLMDataRef headingBugRef;
 };
 
 #endif

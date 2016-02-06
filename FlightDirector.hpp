@@ -44,9 +44,9 @@ private:
 	
 	void updateHeadingSeekMode(unsigned int _elapsedMilliseconds);
 	
-	void updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double dis, double brg);
-	
-	void updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double dis, double brg);
+	void updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double _dis, double _brg);
+
+	void updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double _dis, double _brg);
 	
 private:
 	Autopilot *ap;

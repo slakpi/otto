@@ -23,7 +23,7 @@ public:
 public:
 	virtual float getRudderDeflection() const = 0;
 	
-	virtual void setRudderDeflection(float _deflection) = 0;
+	virtual void setRudderDeflection(float _deflection, float _hdg) = 0;
 };
 
 #endif

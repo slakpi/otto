@@ -26,10 +26,10 @@ static inline double maxCircleDistance(double _projDistance)
 {
 	
 /*	tighten the circle as projected distance decreases.  circle at a maximum of
-	10 nm and a minimum of 1 nm.
+	5 nm and a minimum of 1 nm.
  */
 	
-	return max(min(_projDistance / 2.0 - 1.0, 10.0), 1.0);
+	return max(min(_projDistance / 2.0 - 1.0, 5.0), 1.0);
 }
 
 void FlightDirector::timerCallback(double _interval, void *_arg)
@@ -144,7 +144,7 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 	dR = Rt - Ra;
 	Ar = min(log10(min(fabs(dR), maxRoT) + 0.33) + 0.48, 1.0) * sgn(dR);
 
-	ap->setRudderDeflection((float)Ar);
+	ap->setRudderDeflection((float)Ar, (float)targetHdg);
 }
 
 void FlightDirector::updateProjectedDistance(unsigned int _elapsedMilliseconds)
@@ -181,24 +181,7 @@ void FlightDirector::updateHeading(unsigned int _elapsedMilliseconds)
 {
 	double dis = 0, brg = 0;
 	
-	if (mode == trackMode || mode == circleMode)
-	{
-		getDistanceAndBearing(lastSample.pos, recoveryLoc.pos, dis, brg);
-		
-		if (dis > projDistance && lastSample.alt - recoveryLoc.elev > minAltAGL)
-		{
-			
-/*	if the distance to the current recovery point is greater than our projected glide
-	distance, go back into seek mode.  UNLESS we are below 5000 feet AGL.  in that
-	case, just keep heading toward the recovery location.
- */
-			
-			mode = seekMode;
-			recoveryLoc.id = -1;
-			seekCourseTime = 0;
-			(*log)("OTTO: no longer able to make %s, entering seek mode.\n", recoveryLoc.ident.c_str());
-		}
-	}
+	getDistanceAndBearing(lastSample.pos, recoveryLoc.pos, dis, brg);
 	
 	switch (mode)
 	{
@@ -227,16 +210,18 @@ void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
 		recoveryLoc = loc;
 		originLoc = lastSample.pos;
 		recoveryCourse = brg;
-		(*log)("OTTO: tracking to %s (elev. %.1f) on a course of %.0f.\n", loc.ident.c_str(), loc.elev, brg);
+		(*log)("OTTO: tracking to %s (elev. %.1f) on a course of %.0f.\n",
+			loc.ident.c_str(),
+			loc.elev, brg);
 	}
 	else
 	{
 		
-/*	fly a box pattern with 2 minute legs. */
+/*	fly a box pattern with 1 minute legs. */
 		
 		seekCourseTime += _elapsedMilliseconds;
 		
-		if (seekCourseTime >= 120000)
+		if (seekCourseTime >= 60000)
 		{
 			targetHdg = fmod(targetHdg + 90.0, 360.0);
 			seekCourseTime = 0;
@@ -244,11 +229,25 @@ void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
 	}
 }
 
-void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double dis, double brg)
+void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double _dis, double _brg)
 {
 	double x, ag = groundSpeed.average(), md = maxCircleDistance(projDistance);
-
-	if (dis <= md + 2.0)
+	
+	if (_dis > projDistance && lastSample.alt - recoveryLoc.elev > minAltAGL)
+	{
+		
+		/*	if the distance to the current recovery point is greater than our projected glide
+		 distance, go back into seek mode.  UNLESS we are below 5000 feet AGL.  in that
+		 case, just keep heading toward the recovery location.
+		 */
+		
+		mode = seekMode;
+		recoveryLoc.id = -1;
+		seekCourseTime = 0;
+		(*log)("OTTO: no longer able to make %s, entering seek mode.\n", recoveryLoc.ident.c_str());
+	}
+	
+	if (_dis <= md + 2.0)
 	{
 		mode = circleMode;
 		(*log)("OTTO: entering circle mode around %s.\n", recoveryLoc.ident.c_str());
@@ -272,20 +271,22 @@ void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, d
 	targetHdg = interceptCorrection(recoveryCourse, x, ag);
 }
 
-void FlightDirector::updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double dis, double brg)
+void FlightDirector::updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double _dis, double _brg)
 {
 	double ag = groundSpeed.average(), md = maxCircleDistance(projDistance);
 	
-	if (dis > md + 2.0)
+	if (_dis > md + 5.0)
 	{
 		mode = trackMode;
-		recoveryCourse = brg;
-		(*log)("OTTO: entering track mode to %s on a new course of %.0f.\n", recoveryLoc.ident.c_str(), brg);
+		recoveryCourse = _brg;
+		(*log)("OTTO: entering track mode to %s on a new course of %.0f.\n",
+			recoveryLoc.ident.c_str(),
+			_brg);
 		
 		return;
 	}
 	
 /*	maintain a constant distance circle around the recovery location. */
 	
-	targetHdg = interceptCorrection(brg + 90.0, dis - md, ag);
+	targetHdg = interceptCorrection(_brg + 90.0, _dis - md, ag);
 }
