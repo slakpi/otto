@@ -95,7 +95,7 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 	 "WHERE PtDistWithin(location, ?1, ?2) = 1 AND "
 	 " Azimuth(location, ?1) >= ?3 AND "
 	 " Azimuth(location, ?1) <= ?4 "
-	 "ORDER BY Distance(location, ?1) ASC",
+	 "ORDER BY Distance(?1, location) ASC",
 	 -1,
 	 &stmt,
 	 nullptr);
