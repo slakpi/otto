@@ -5,6 +5,8 @@
 #include <sqlite3.h>
 #include <spatialite.h>
 
+using namespace std;
+
 struct Coord
 {
 	int s;
@@ -48,17 +50,17 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 	FILE *data;
 	char buf[32768];
 	size_t i, j, bytes;
-	std::stringstream sql;
-	std::string ident;
-	std::string lat;
-	std::string lon;
-	std::string elev;
+	stringstream sql;
+	string ident;
+	string lat;
+	string lon;
+	string elev;
 	LatLon latLon;
 	int field = 0, isEOL, isSep, ret, ok = 0;
 	int isFirstLine = 1;
 	double latdd, londd, elevd;
 	unsigned char *ptBlob;
-	int ptSize;
+	int ptSize, recs = 0;
 	sqlite3_stmt *stmt;
 
 	data = fopen(_path, "r");
@@ -78,14 +80,14 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 		if (ret != SQLITE_OK)
 			throw ret;
 
-		for(;;)
+		for (;;)
 		{
 			bytes = fread(buf, sizeof(char), 32768, data);
 
 			if (bytes == 0)
 				break;
 
-			for(i = 0, j = 0; i < bytes; i++)
+			for (i = 0, j = 0; i < bytes; i++)
 			{
 				isEOL = (buf[i] == '\n');
 				isSep = (isEOL || buf[i] == ',');
@@ -131,7 +133,7 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 					sqlite3_clear_bindings(stmt);
 
 					elevd = strtod(elev.c_str(), 0);
-				
+
 					_parseCoord(lat.c_str(), &latLon.lat);
 					latdd = latLon.lat.deg;
 					latdd += latLon.lat.min / 60.0;
@@ -163,9 +165,12 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 					elev.clear();
 					field = 0;
 					j = i + 1;
+					++recs;
 				}
 			}
 		}
+
+		cout << "Added " << recs << " record(s) to the recovery database." << endl;
 
 		ok = 1;
 	}
@@ -180,6 +185,8 @@ static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 	if (ok)
 		return 0;
 
+	cerr << "Failed to build database." << endl;
+
 	return -1;
 }
 
@@ -190,7 +197,10 @@ int main(int _argc, char* _argv[])
 	void *cache = 0;
 
 	if (_argc < 3)
+	{
+		cerr << endl << "Usage: recoverydb <new database> <input CSV file>" << endl << endl;
 		return -1;
+	}
 
 	try
 	{
@@ -262,6 +272,7 @@ int main(int _argc, char* _argv[])
 		spatialite_cleanup_ex(cache);
 		spatialite_shutdown();
 	}
+
 	if (ok)
 		return 0;
 

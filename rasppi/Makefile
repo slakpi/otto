@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-g -c -std=c++11 -Wall
+CXXFLAGS=-O3 -c -std=c++11 -Wall
 LDFLAGS=-lspatialite -lsqlite3
 OBJDIR=./obj/
 BINDIR=./bin/
