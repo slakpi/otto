@@ -10,7 +10,7 @@
 #include <csignal>
 #include <cstdarg>
 #include <wiringPi.h>
-#include "LSM6.hpp"
+#include "LSM6DS33.hpp"
 #include "LIS3MDL.hpp"
 
 static int running = 1;
@@ -45,28 +45,6 @@ static void logCallback(const char *_fmt, ...)
 	delete [] str;
 }
 
-static void doTasks()
-{
-	LSM6 lsm6;
-	LIS3MDL lis3mdl;
-	Vector<double> a, g, m;
-
-	lsm6.init();
-	lsm6.readAccel(a);
-	lsm6.readGyro(g);
-
-	lis3mdl.init();
-	lis3mdl.readMag(m);
-}
-
-#ifndef OTTO_DAEMON
-int main(int _argc, char* _argv[])
-{
-	doTasks();
-
-	return 0;
-}
-#else
 int main(int _argc, char* _argv[])
 {
 	pid_t pid, sid;
@@ -94,11 +72,10 @@ int main(int _argc, char* _argv[])
 
 	while (running != 0)
 	{
-		doTasks();
+		sleep(5);
 	}
 
 	closelog();
 
 	return 0;
 }
-#endif

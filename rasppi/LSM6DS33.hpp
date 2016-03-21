@@ -1,10 +1,10 @@
-#ifndef LSM6_HPP
-#define LSM6_HPP
+#ifndef LSM6DS33_HPP
+#define LSM6DS33_HPP
 
 #include <sys/types.h>
 #include "Vector.hpp"
 
-class LSM6
+class LSM6DS33
 {
 public:
 	enum Sa0State
@@ -87,10 +87,10 @@ public:
 	};
 
 public:
-	LSM6();
+	LSM6DS33();
 
 public:
-	~LSM6();
+	~LSM6DS33();
 
 public:
     bool init(Sa0State _sa0 = sa0_auto);

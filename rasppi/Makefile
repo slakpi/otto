@@ -1,12 +1,12 @@
 CXX=g++
-CXXFLAGS=-g -c -std=c++11 -Wall
+CXXFLAGS=-O3 -c -std=c++11 -Wall
 LDFLAGS=-lspatialite -lsqlite3 -lwiringPi
 OBJDIR=./obj/
 BINDIR=./bin/
 OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
  $(OBJDIR)FlightDirector.o $(OBJDIR)GISDatabase.o $(OBJDIR)TimerSource.o\
  $(OBJDIR)Utilities.o $(OBJDIR)RpiAutopilot.o $(OBJDIR)RpiDataSource.o\
- $(OBJDIR)RpiTimerSource.o $(OBJDIR)LSM6.o $(OBJDIR)LIS3MDL.o $(OBJDIR)rasppi.o
+ $(OBJDIR)RpiTimerSource.o $(OBJDIR)LSM6DS33.o $(OBJDIR)LIS3MDL.o
 
 all: directories otto rdbtool recoverydb
 
@@ -25,7 +25,13 @@ $(OBJDIR)%.o: ./%.cpp
 
 otto: $(OBJFILES)
 	@echo Linking otto...
-	@$(CXX) $(OBJFILES) -o $(BINDIR)otto $(LDFLAGS)
+	@$(CXX) $(OBJFILES) rasppi.o -o $(BINDIR)otto $(LDFLAGS)
+
+test: directories $(OBJFILES)
+	@echo Compiling test.cpp...
+	@$(CXX) $(CXXFLAGS) -I../ -o $(OBJDIR)test.o test.cpp
+	@echo Linking otto_test...
+	@$(CXX) $(OBJFILES) $(OBJDIR)test.o -o $(BINDIR)otto_test $(LDFLAGS)
 
 rdbtool:
 	@echo Building recoverydb tool...
@@ -38,4 +44,4 @@ recoverydb:
 
 clean:
 	@echo Cleaning...
-	@rm -f $(OBJFILES) $(OBJDIR)recoverydb.o $(BINDIR)otto $(BINDIR)recoverydb $(BINDIR)recovery.db
+	@rm -rf $(BINDIR) $(OBJDIR)

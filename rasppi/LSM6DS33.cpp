@@ -1,6 +1,6 @@
 #include <unistd.h>
 #include <wiringPiI2C.h>
-#include "LSM6.hpp"
+#include "LSM6DS33.hpp"
 
 #define DS33_SA0_HIGH_ADDRESS	0x6b
 #define DS33_SA0_LOW_ADDRESS	0x6a
@@ -55,21 +55,19 @@ static double makeGyro(int16_t _v)
 	return (double)((_v + 32768) * ((MAX_GYRO - MIN_GYRO) / 65535.0) + MIN_GYRO);
 }
 
-LSM6::LSM6()
+LSM6DS33::LSM6DS33()
 :	fd(INVALID_FD)
 {
 
 }
 
-LSM6::~LSM6()
+LSM6DS33::~LSM6DS33()
 {
 	uninit();
 }
 
-bool LSM6::init(Sa0State _sa0 /* = sa0_auto */)
+bool LSM6DS33::init(Sa0State _sa0 /* = sa0_auto */)
 {
-	int r;
-
 	if (fd != INVALID_FD)
 		return true;
 	if (_sa0 != sa0_low && init2(DS33_SA0_HIGH_ADDRESS))
@@ -80,7 +78,7 @@ bool LSM6::init(Sa0State _sa0 /* = sa0_auto */)
 	return false;
 }
 
-void LSM6::uninit()
+void LSM6DS33::uninit()
 {
 	if (fd == INVALID_FD)
 		return;
@@ -89,7 +87,7 @@ void LSM6::uninit()
 	fd = INVALID_FD;
 }
 
-void LSM6::readAccel(Vector<double> &_a) const
+void LSM6DS33::readAccel(Vector<double> &_a) const
 {
 	u_int8_t lx, hx, ly, hy, lz, hz;
 
@@ -110,7 +108,7 @@ void LSM6::readAccel(Vector<double> &_a) const
 	_a.z = makeAccel((hz << 8) | lz);
 }
 
-void LSM6::readGyro(Vector<double> &_g) const
+void LSM6DS33::readGyro(Vector<double> &_g) const
 {
 	u_int8_t lx, hx, ly, hy, lz, hz;
 
@@ -131,9 +129,9 @@ void LSM6::readGyro(Vector<double> &_g) const
 	_g.z = makeGyro((hz << 8) | lz);
 }
 
-bool LSM6::init2(u_int8_t _addr)
+bool LSM6DS33::init2(u_int8_t _addr)
 {
-	u_int16_t r;
+	int r;
 
 	fd = wiringPiI2CSetup(_addr);
 
