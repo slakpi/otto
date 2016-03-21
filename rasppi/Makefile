@@ -1,12 +1,12 @@
 CXX=g++
-CXXFLAGS=-O3 -c -std=c++11 -Wall
-LDFLAGS=-lspatialite -lsqlite3
+CXXFLAGS=-g -c -std=c++11 -Wall
+LDFLAGS=-lspatialite -lsqlite3 -lwiringPi
 OBJDIR=./obj/
 BINDIR=./bin/
 OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
  $(OBJDIR)FlightDirector.o $(OBJDIR)GISDatabase.o $(OBJDIR)TimerSource.o\
  $(OBJDIR)Utilities.o $(OBJDIR)RpiAutopilot.o $(OBJDIR)RpiDataSource.o\
- $(OBJDIR)RpiTimerSource.o $(OBJDIR)rasppi.o
+ $(OBJDIR)RpiTimerSource.o $(OBJDIR)LSM6.o $(OBJDIR)LIS3MDL.o $(OBJDIR)rasppi.o
 
 all: directories otto rdbtool recoverydb
 
