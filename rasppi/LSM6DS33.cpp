@@ -5,7 +5,6 @@
 #define DS33_SA0_HIGH_ADDRESS	0x6b
 #define DS33_SA0_LOW_ADDRESS	0x6a
 #define DS33_WHO_ID				0x69
-#define INVALID_FD				-1
 
 /*	ACCEL_MODE_DEFAULT
 
@@ -56,7 +55,7 @@ static double makeGyro(int16_t _v)
 }
 
 LSM6DS33::LSM6DS33()
-:	fd(INVALID_FD)
+:	fd(-1)
 {
 
 }
@@ -68,7 +67,7 @@ LSM6DS33::~LSM6DS33()
 
 bool LSM6DS33::init(Sa0State _sa0 /* = sa0_auto */)
 {
-	if (fd != INVALID_FD)
+	if (fd != -1)
 		return true;
 	if (_sa0 != sa0_low && init2(DS33_SA0_HIGH_ADDRESS))
 		return true;
@@ -80,11 +79,11 @@ bool LSM6DS33::init(Sa0State _sa0 /* = sa0_auto */)
 
 void LSM6DS33::uninit()
 {
-	if (fd == INVALID_FD)
+	if (fd == -1)
 		return;
 
 	close(fd);
-	fd = INVALID_FD;
+	fd = -1;
 }
 
 void LSM6DS33::readAccel(Vector<double> &_a) const
@@ -93,7 +92,7 @@ void LSM6DS33::readAccel(Vector<double> &_a) const
 
 	_a.x = _a.y = _a.z = 0;
 
-	if (fd == INVALID_FD)
+	if (fd == -1)
 		return;
 
 	lx = wiringPiI2CReadReg8(fd, OUTX_L_XL);
@@ -114,7 +113,7 @@ void LSM6DS33::readGyro(Vector<double> &_g) const
 
 	_g.x = _g.y = _g.z = 0;
 
-	if (fd == INVALID_FD)
+	if (fd == -1)
 		return;
 
 	lx = wiringPiI2CReadReg8(fd, OUTX_L_G);
@@ -135,21 +134,21 @@ bool LSM6DS33::init2(u_int8_t _addr)
 
 	fd = wiringPiI2CSetup(_addr);
 
-	if (fd != INVALID_FD)
+	if (fd == -1)
+		return false;
+
+	r = wiringPiI2CReadReg8(fd, WHO_AM_I);
+
+	if (r == DS33_WHO_ID)
 	{
-		r = wiringPiI2CReadReg8(fd, WHO_AM_I);
-
-		if (r == DS33_WHO_ID)
-		{
-			r = wiringPiI2CWriteReg8(fd, CTRL1_XL, ACCEL_MODE_DEFAULT);
-			r = wiringPiI2CWriteReg8(fd, CTRL2_G, GYRO_MODE_DEFAULT);
-			r = wiringPiI2CWriteReg8(fd, CTRL3_C, COMMON_MODE_DEFAULT);
-			return true;
-		}
-
-		close(fd);
-		fd = INVALID_FD;
+		r = wiringPiI2CWriteReg8(fd, CTRL1_XL, ACCEL_MODE_DEFAULT);
+		r = wiringPiI2CWriteReg8(fd, CTRL2_G, GYRO_MODE_DEFAULT);
+		r = wiringPiI2CWriteReg8(fd, CTRL3_C, COMMON_MODE_DEFAULT);
+		return true;
 	}
+
+	close(fd);
+	fd = -1;
 
 	return false;
 }

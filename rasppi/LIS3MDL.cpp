@@ -5,7 +5,6 @@
 #define LIS3MDL_SA1_HIGH_ADDRESS	0x1e
 #define LIS3MDL_SA1_LOW_ADDRESS		0x1c
 #define LIS3MDL_WHO_ID				0x3d
-#define INVALID_FD					-1
 
 /*	CTRL_1_DEFAULT
 
@@ -66,7 +65,7 @@ static double makeMag(int16_t _v)
 }
 
 LIS3MDL::LIS3MDL()
-:	fd(INVALID_FD)
+:	fd(-1)
 {
 
 }
@@ -78,7 +77,7 @@ LIS3MDL::~LIS3MDL()
 
 bool LIS3MDL::init(Sa1State _sa1 /* = sa1_auto */)
 {
-	if (fd != INVALID_FD)
+	if (fd != -1)
 		return true;
 	if (_sa1 != sa1_low && init2(LIS3MDL_SA1_HIGH_ADDRESS))
 		return true;
@@ -90,11 +89,11 @@ bool LIS3MDL::init(Sa1State _sa1 /* = sa1_auto */)
 
 void LIS3MDL::uninit()
 {
-	if (fd == INVALID_FD)
+	if (fd == -1)
 		return;
 
 	close(fd);
-	fd = INVALID_FD;
+	fd = -1;
 }
 
 void LIS3MDL::readMag(Vector<double> &_m) const
@@ -103,7 +102,7 @@ void LIS3MDL::readMag(Vector<double> &_m) const
 
 	_m.x = _m.y = _m.z = 0;
 
-	if (fd == INVALID_FD)
+	if (fd == -1)
 		return;
 
 	lx = wiringPiI2CReadReg8(fd, OUT_X_L);
@@ -118,28 +117,41 @@ void LIS3MDL::readMag(Vector<double> &_m) const
 	_m.z = makeMag((hz << 8) | lz);
 }
 
+int LIS3MDL::readTemp() const
+{
+	u_int8_t lt, ht;
+
+	if (fd == -1)
+		return 0;
+
+	lt = wiringPiI2CReadReg8(fd, TEMP_OUT_L);
+	ht = wiringPiI2CReadReg8(fd, TEMP_OUT_H);
+
+	return (int)((ht << 8) | lt);
+}
+
 bool LIS3MDL::init2(u_int8_t _addr)
 {
 	u_int16_t r;
 
 	fd = wiringPiI2CSetup(_addr);
 
-	if (fd != INVALID_FD)
+	if (fd == -1)
+		return false;
+
+	r = wiringPiI2CReadReg8(fd, WHO_AM_I);
+
+	if (r == LIS3MDL_WHO_ID)
 	{
-		r = wiringPiI2CReadReg8(fd, WHO_AM_I);
-
-		if (r == LIS3MDL_WHO_ID)
-		{
-			r = wiringPiI2CWriteReg8(fd, CTRL_REG1, CTRL_1_DEFAULT);
-			r = wiringPiI2CWriteReg8(fd, CTRL_REG2, CTRL_2_DEFAULT);
-			r = wiringPiI2CWriteReg8(fd, CTRL_REG3, CTRL_3_DEFAULT);
-			r = wiringPiI2CWriteReg8(fd, CTRL_REG4, CTRL_4_DEFAULT);
-			return true;
-		}
-
-		close(fd);
-		fd = INVALID_FD;
+		r = wiringPiI2CWriteReg8(fd, CTRL_REG1, CTRL_1_DEFAULT);
+		r = wiringPiI2CWriteReg8(fd, CTRL_REG2, CTRL_2_DEFAULT);
+		r = wiringPiI2CWriteReg8(fd, CTRL_REG3, CTRL_3_DEFAULT);
+		r = wiringPiI2CWriteReg8(fd, CTRL_REG4, CTRL_4_DEFAULT);
+		return true;
 	}
+
+	close(fd);
+	fd = -1;
 
 	return false;
 }

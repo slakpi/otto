@@ -9,9 +9,9 @@
 #include <cstring>
 #include <csignal>
 #include <cstdarg>
-#include <wiringPi.h>
 #include "LSM6DS33.hpp"
 #include "LIS3MDL.hpp"
+#include "LS20031.hpp"
 
 static int running = 1;
 

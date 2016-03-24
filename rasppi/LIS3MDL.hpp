@@ -52,6 +52,8 @@ public:
 
 	void readMag(Vector<double> &_m) const;
 
+	int readTemp() const;
+
 private:
 	bool init2(u_int8_t _addr);
 
