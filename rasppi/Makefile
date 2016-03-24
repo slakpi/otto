@@ -7,7 +7,7 @@ OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
  $(OBJDIR)FlightDirector.o $(OBJDIR)GISDatabase.o $(OBJDIR)TimerSource.o\
  $(OBJDIR)Utilities.o $(OBJDIR)RpiAutopilot.o $(OBJDIR)RpiDataSource.o\
  $(OBJDIR)RpiTimerSource.o $(OBJDIR)LSM6DS33.o $(OBJDIR)LIS3MDL.o\
- $(OBJDIR)LS20031.o
+ $(OBJDIR)LS20031.o $(OBJDIR)NMEA.o
 
 all: directories otto rdbtool recoverydb
 
@@ -26,7 +26,7 @@ $(OBJDIR)%.o: ./%.cpp
 
 otto: directories $(OBJFILES)
 	@echo Compiling rasppi.cpp...
-	@$(CXX) $(CXXFLAGS) -I../ -o $(OBJDIR)rasppi.o test.cpp
+	@$(CXX) $(CXXFLAGS) -I../ -o $(OBJDIR)rasppi.o rasppi.cpp
 	@echo Linking otto...
 	@$(CXX) $(OBJFILES) $(OBJDIR)rasppi.o -o $(BINDIR)otto $(LDFLAGS)
 
