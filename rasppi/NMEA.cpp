@@ -103,7 +103,7 @@ static const unsigned char map[] =
 {
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1,	0,	0,	1,	0,	0,
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
-	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	0,	1,	0,	1,	0,
+	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	0,	1,	1,	1,	0,
 	5,	5,	5,	5,	5,	5,	5,	5,	5,	5,	0,	0,	0,	0,	0,	0,
 	0,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,
 	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	0,	0,	0,	0,	0,
@@ -250,13 +250,17 @@ NMEA::ParseStatus NMEA::putChar(char _c, NMEABase **_sentence)
 				data = new GGA();
 				state = stateGGAInitial;
 			}
-			else if (match == "GPVTG")
+/*			else if (match == "GPVTG")
 			{
 				data = new VTG();
 				state = stateVTGInitial;
 			}
+ */
 			else
-				ERR();
+			{
+				init();
+				break;
+			}
 
 			CLR();
 			break;
@@ -416,7 +420,7 @@ NMEA::ParseStatus NMEA::putChar(char _c, NMEABase **_sentence)
 			break;
 		}
 
-		if (!NUM(_c) && _c != '.')
+		if (!NUM(_c) && _c != '.' && _c != '-')
 			ERR();
 
 		match.push_back(_c);
@@ -431,7 +435,7 @@ NMEA::ParseStatus NMEA::putChar(char _c, NMEABase **_sentence)
 			break;
 		}
 
-		if (!NUM(_c) && _c != '.')
+		if (!NUM(_c) && _c != '.' && _c != '-')
 			ERR();
 
 		match.push_back(_c);
@@ -459,7 +463,7 @@ NMEA::ParseStatus NMEA::putChar(char _c, NMEABase **_sentence)
 			break;
 		}
 
-		if (!NUM(_c) && _c != '.')
+		if (!NUM(_c) && _c != '.' && _c != '-')
 			ERR();
 
 		match.push_back(_c);
@@ -487,7 +491,7 @@ NMEA::ParseStatus NMEA::putChar(char _c, NMEABase **_sentence)
 			break;
 		}
 
-		if (!NUM(_c) && _c != '.')
+		if (!NUM(_c) && _c != '.' && _c != '-')
 			ERR();
 
 		match.push_back(_c);
