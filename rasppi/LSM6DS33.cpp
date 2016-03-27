@@ -46,12 +46,12 @@
 
 static double makeAccel(int16_t _v)
 {
-	return (double)((_v + 32768) * ((MAX_ACCEL - MIN_ACCEL) / 65535.0) + MIN_ACCEL);
+	return static_cast<double>(((_v + 32768) * ((MAX_ACCEL - MIN_ACCEL) / 65535.0) + MIN_ACCEL));
 }
 
 static double makeGyro(int16_t _v)
 {
-	return (double)((_v + 32768) * ((MAX_GYRO - MIN_GYRO) / 65535.0) + MIN_GYRO);
+	return static_cast<double>(((_v + 32768) * ((MAX_GYRO - MIN_GYRO) / 65535.0) + MIN_GYRO));
 }
 
 LSM6DS33::LSM6DS33()

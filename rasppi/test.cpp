@@ -1,78 +1,37 @@
 #include <iostream>
-#include <csignal>
-#include <cstdlib>
-#include <unistd.h>
-#include <wiringPi.h>
-#include <wiringSerial.h>
-#include <termios.h>
+#include "NMEA.hpp"
 
-#define BUF_SIZE 512
-
-using namespace std;
-
-static int run = 1;
-
-static void signalHandler(int _signal)
-{
-	switch (_signal)
-	{
-	case SIGINT:
-	case SIGTERM:
-		run = 0;
-		break;
-	}
-}
+static const char *sentence = "$GPGGA,053740.000,2503.6319,N,12136.0099,E,1,08,1.1,63.8,M,15.2,M,,0000*64\r\n";
 
 int main(int _argc, char* _argv[])
 {
-	struct termios options;
-	int fd = -1, c = 0, g;
-	char buf[BUF_SIZE + 1];
+	NMEA nmea;
+	NMEA::NMEABase *b;
+	NMEA::GGA *gga;
+	const char *p;
 
-	signal(SIGINT, signalHandler);
-	signal(SIGTERM, signalHandler);
-
-	fd = serialOpen("/dev/ttyAMA0", 9600);
-
-	tcgetattr(fd, &options);
-	options.c_cflag &= ~(CSIZE | PARENB);
-	options.c_cflag |= CS8;
-	tcsetattr(fd, TCSANOW, &options);
-
-	if (fd == -1)
+	for (p = sentence; *p != 0; ++p)
 	{
-		cout << "Failed to open device.\n";
-		return -1;
-	}
-
-	while (run)
-	{
-		g = serialDataAvail(fd);
-
-		for ( ; g > 0; --g)
+		switch (nmea.putChar(*p, &b))
 		{
-			buf[c++] = (char)serialGetchar(fd);
-
-			if (c == BUF_SIZE)
-			{
-				buf[c] = 0;
-				cout << buf;
-				c = 0;
-				continue;
-			}
+		case NMEA::nmeaComplete:
+			gga = static_cast<NMEA::GGA*>(b);
+			std::cout << (gga->lat / (60.0 * 10000.0)) << ", " <<
+				(gga->lon / (60.0 * 10000.0)) << ", " <<
+				gga->altMSL << " meters" << std::endl;
+			break;
+		case NMEA::nmeaCompleteInvalid:
+			std::cout << "Checksum mismatch: " <<
+				(int)b->messageChecksum << " != " <<
+				(int)b->calculatedChecksum << std::endl;
+			break;
+		case NMEA::nmeaErrorReset:
+			std::cout << "Parse error.\n";
+			break;
+		case NMEA::nmeaIncomplete:
+			break;
 		}
-
-		if (c > 0)
-		{
-			buf[c] = 0;
-			cout << buf << endl;
-			c = 0;
-		}
-
-		sleep(1);
 	}
-
-	close(fd);
 
 	return 0;
 }

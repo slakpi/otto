@@ -2,6 +2,11 @@
 #define NMEA_HPP
 
 #include <ctime>
+#include <string>
+
+/*	conforms only to the values and ranges specified for the LS20031
+	GPS module.  this parser does not support the full NMEA specification.
+ */
 
 class NMEA
 {
@@ -17,10 +22,6 @@ public:
 	enum NMEAType
 	{
 		nmeaGGA,
-		nmeaGLL,
-		nmeaGSA,
-		nmeaGSV,
-		nmeaRMC,
 		nmeaVTG
 	};
 
@@ -30,10 +31,17 @@ public:
 		NMEABase(NMEAType _type);
 
 	public:
-		~NMEABase();
+		virtual ~NMEABase();
 
 	public:
 		NMEAType getType() const;
+
+	public:
+		virtual void destroy();
+
+	public:
+		u_int8_t calculatedChecksum;
+		u_int8_t messageChecksum;
 
 	private:
 		NMEAType type;
@@ -54,16 +62,12 @@ public:
 		GGA();
 
 	public:
-		~GGA();
+		virtual ~GGA();
 
 	public:
-		time_t utc;
-		double latDeg;
-		double latMin;
-		bool south;
-		double lonDeg;
-		double lonMin;
-		bool west;
+		int32_t utc; // UTC in milliseconds since 00:00:00
+		int32_t lat; // Latitude in ten-thousandths of a minute
+		int32_t lon; // Longitude in ten-thousandths of a minute
 		FixIndicator fix;
 		int satellites;
 		double HDOP;
@@ -73,6 +77,33 @@ public:
 		int diffRefID;
 	};
 
+	class VTG : public NMEABase
+	{
+	public:
+		enum Mode
+		{
+			modeAutonomous,
+			modeDGPS,
+			modeDR,
+			modeNotValid,
+			modeCoarsePosition,
+			modeSimulator
+		};
+
+	public:
+		VTG();
+
+	public:
+		virtual ~VTG();
+
+	public:
+		double trueGTK; // degrees true heading
+		double magGTK; // degrees magnetic heading
+		double ktsGS; // knots ground speed
+		double kphGS; // km/hr ground speed
+		Mode mode;
+	};
+
 private:
 	enum ParseState
 	{
@@ -80,14 +111,35 @@ private:
 		stateId,
 
 		stateGGAUTC,
-		stateGGALatDeg,
-		stateGGALatMin,
+		stateGGALat,
 		stateGGALatIndicator,
-		stateGGALonDeg,
-		stateGGALonMin,
+		stateGGALon,
 		stateGGALonIndicator,
 		stateGGAFixIndicator,
-		stateGGA
+		stateGGASatellites,
+		stateGGAHDOP,
+		stateGGAAltitude,
+		stateGGAAltUnits,
+		stateGGAGeoidSep,
+		stateGGAGeoidSepUnits,
+		stateGGADiffCorrAge,
+		stateGGADiffRefID,
+
+		stateVTGTrueGTK,
+		stateVTGTrueRef,
+		stateVTGMagGTK,
+		stateVTGMagRef,
+		stateVTGKtsGS,
+		stateVTGKtsUnit,
+		stateVTGKphGS,
+		stateVTGKphUnit,
+		stateVTGMode,
+
+		stateChecksum,
+		stateCR,
+
+		stateGGAInitial = stateGGAUTC,
+		stateVTGInitial = stateVTGTrueGTK,
 	};
 
 public:
@@ -100,6 +152,13 @@ public:
 	void init();
 
 	ParseStatus putChar(char _c, NMEABase **_sentence);
+
+private:
+	ParseState state;
+	unsigned char chksum;
+	std::string match;
+	u_int8_t c;
+	NMEABase *data;
 };
 
 #endif

@@ -1,8 +1,6 @@
 #ifndef LS20031_HPP
 #define LS20031_HPP
 
-#include <pthread.h>
-
 class LS20031
 {
 public:
@@ -15,9 +13,6 @@ public:
 		double hdg;
 	};
 
-private:
-	static void* threadProc(void *_param);
-
 public:
 	LS20031();
 
@@ -27,15 +22,12 @@ public:
 public:
 	bool init(const char *_dev);
 
-	bool sample(GpsSample &_sample, bool block = true);
+	bool sample(GpsSample &_sample);
 
 	void uninit();
 
 private:
-	int fd, run;
-	pthread_t td;
-	pthread_mutex_t sampleLock;
-	GpsSample curData;
+	int fd;
 };
 
 #endif

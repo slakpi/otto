@@ -61,7 +61,7 @@
 
 static double makeMag(int16_t _v)
 {
-	return (double)((_v + 32768) * ((MAX_MAG - MIN_MAG) / 65535.0) + MIN_MAG);
+	return static_cast<double>(((_v + 32768) * ((MAX_MAG - MIN_MAG) / 65535.0) + MIN_MAG));
 }
 
 LIS3MDL::LIS3MDL()
@@ -127,7 +127,7 @@ int LIS3MDL::readTemp() const
 	lt = wiringPiI2CReadReg8(fd, TEMP_OUT_L);
 	ht = wiringPiI2CReadReg8(fd, TEMP_OUT_H);
 
-	return (int)((ht << 8) | lt);
+	return static_cast<int>(((ht << 8) | lt));
 }
 
 bool LIS3MDL::init2(u_int8_t _addr)
