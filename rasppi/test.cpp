@@ -5,6 +5,19 @@
 #include <wiringSerial.h>
 #include "NMEA.hpp"
 
+static int run = 1;
+
+static void signalHandler(int _signal)
+{
+	switch (_signal)
+	{
+	case SIGINT:
+	case SIGTERM:
+		run = 0;
+		break;
+	}
+}
+
 int main(int _argc, char* _argv[])
 {
 	char c;
@@ -13,6 +26,7 @@ int main(int _argc, char* _argv[])
 	NMEA::ParseStatus ret;
 	NMEA::NMEABase *b;
 	NMEA::GGA *gga;
+	NMEA::VTG *vtg;
 
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
@@ -20,8 +34,13 @@ int main(int _argc, char* _argv[])
 	fd = serialOpen("/dev/ttyAMA0", 57600);
 
 	if (fd == -1)
+		return -1;
+
+	while (run)
 	{
-		switch (nmea.putChar(*p, &b))
+		g = serialDataAvail(fd);
+
+		for ( ; g > 0; --g)
 		{
 			c = (char)serialGetchar(fd);
 			ret = nmea.putChar(c, &b);
@@ -37,6 +56,14 @@ int main(int _argc, char* _argv[])
 						(gga->lon / (60.0 * 10000.0)) << " " <<
 						gga->altMSL << " meters" << std::endl;
 					gga = NULL;
+					break;
+				case NMEA::nmeaVTG:
+					vtg = static_cast<NMEA::VTG*>(b);
+					std::cout << vtg->ktsGS << " kts, " <<
+						vtg->kphGS << " kph, " <<
+						vtg->trueGTK << " degress true, " <<
+						vtg->mode << std::endl;
+					vtg = NULL;
 					break;
 				}
 

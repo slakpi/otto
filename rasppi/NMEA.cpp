@@ -250,12 +250,11 @@ NMEA::ParseStatus NMEA::putChar(char _c, NMEABase **_sentence)
 				data = new GGA();
 				state = stateGGAInitial;
 			}
-/*			else if (match == "GPVTG")
+			else if (match == "GPVTG")
 			{
 				data = new VTG();
 				state = stateVTGInitial;
 			}
- */
 			else
 			{
 				init();
@@ -511,6 +510,176 @@ NMEA::ParseStatus NMEA::putChar(char _c, NMEABase **_sentence)
 			ERR();
 
 		match.push_back(_c);
+		break;
+
+	case stateVTGTrueGTK:
+		if (_c == ',')
+		{
+			_VTG->trueGTK = strtod(match.c_str(), NULL);
+			state = stateVTGTrueRef;
+			CLR();
+			break;
+		}
+
+		if (!NUM(_c) && _c != '.')
+			ERR();
+
+		match.push_back(_c);
+		break;
+
+	case stateVTGTrueRef:
+		switch (_c)
+		{
+		case ',':
+			state = stateVTGMagGTK;
+			CLR();
+			break;
+		case 'T':
+			break;
+		default:
+			ERR();
+		}
+
+		if (c > 1)
+			ERR();
+
+		break;
+
+	case stateVTGMagGTK:
+		if (_c == ',')
+		{
+			_VTG->magGTK = strtod(match.c_str(), NULL);
+			state = stateVTGMagRef;
+			CLR();
+			break;
+		}
+
+		if (!NUM(_c) && _c != '.')
+			ERR();
+
+		match.push_back(_c);
+		break;
+
+	case stateVTGMagRef:
+		switch (_c)
+		{
+		case ',':
+			state = stateVTGKtsGS;
+			CLR();
+			break;
+		case 'M':
+			break;
+		default:
+			ERR();
+		}
+
+		if (c > 1)
+			ERR();
+
+		break;
+
+	case stateVTGKtsGS:
+		if (_c == ',')
+		{
+			_VTG->ktsGS = strtod(match.c_str(), NULL);
+			state = stateVTGKtsUnit;
+			CLR();
+			break;
+		}
+
+		if (!NUM(_c) && _c != '.')
+			ERR();
+
+		match.push_back(_c);
+		break;
+
+	case stateVTGKtsUnit:
+		switch (_c)
+		{
+		case ',':
+			state = stateVTGKphGS;
+			CLR();
+			break;
+		case 'N':
+			break;
+		default:
+			ERR();
+		}
+
+		if (c > 1)
+			ERR();
+
+		break;
+
+	case stateVTGKphGS:
+		if (_c == ',')
+		{
+			_VTG->kphGS = strtod(match.c_str(), NULL);
+			state = stateVTGKphUnit;
+			CLR();
+			break;
+		}
+
+		if (!NUM(_c) && _c != '.')
+			ERR();
+
+		match.push_back(_c);
+		break;
+
+	case stateVTGKphUnit:
+		switch (_c)
+		{
+		case ',':
+			state = stateVTGMode;
+			CLR();
+			break;
+		case 'K':
+			break;
+		default:
+			ERR();
+		}
+
+		if (c > 1)
+			ERR();
+
+		break;
+
+	case stateVTGMode:
+		if (_c == '*')
+		{
+			chksum ^= _c; // undo checksum XOR
+			state = stateChecksum;
+			CLR();
+			break;
+		}
+
+		if (c > 1)
+			ERR();
+
+		switch (_c)
+		{
+		case 'A':
+			_VTG->mode = VTG::modeAutonomous;
+			break;
+		case 'D':
+			_VTG->mode = VTG::modeDGPS;
+			break;
+		case 'E':
+			_VTG->mode = VTG::modeDR;
+			break;
+		case 'N':
+			_VTG->mode = VTG::modeNotValid;
+			break;
+		case 'R':
+			_VTG->mode = VTG::modeCoarsePosition;
+			break;
+		case 'S':
+			_VTG->mode = VTG::modeSimulator;
+			break;
+		default:
+			ERR();
+		}
+
 		break;
 
 	case stateChecksum:
