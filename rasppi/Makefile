@@ -9,7 +9,7 @@ OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
  $(OBJDIR)RpiTimerSource.o $(OBJDIR)LSM6DS33.o $(OBJDIR)LIS3MDL.o\
  $(OBJDIR)LS20031.o $(OBJDIR)NMEA.o
 
-all: directories otto rdbtool recoverydb
+all: directories test_imu test_gps otto rdbtool recoverydb
 
 directories:
 	@echo Making output directories...

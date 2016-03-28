@@ -28,12 +28,12 @@
     ODR   FS  125 dps X
 
 	ODR	b0011	= 52 Hz (low power)
-	FS	b00 	= 245 dps
+	FS	b00 	= 245 dps (+/- 122.5 dps)
  */
 
 #define GYRO_MODE_DEFAULT		0x30
-#define MIN_GYRO				0
-#define MAX_GYRO				245
+#define MIN_GYRO				-122.5
+#define MAX_GYRO				122.5
 
 /*	COMMON_MODE_DEFAULT
 
