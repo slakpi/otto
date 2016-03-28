@@ -52,6 +52,8 @@ public:
 
 	void readMag(Vector<double> &_m) const;
 
+	void readMag(Vector<double> &_m, double &_hdg) const;
+
 	int readTemp() const;
 
 private:

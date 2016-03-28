@@ -1,3 +1,4 @@
+#include <cmath>
 #include <unistd.h>
 #include <wiringPiI2C.h>
 #include "LIS3MDL.hpp"
@@ -115,6 +116,20 @@ void LIS3MDL::readMag(Vector<double> &_m) const
 	_m.x = makeMag((hx << 8) | lx);
 	_m.y = makeMag((hy << 8) | ly);
 	_m.z = makeMag((hz << 8) | lz);
+}
+
+void LIS3MDL::readMag(Vector<double> &_m, double &_hdg) const
+{
+	readMag(_m);
+
+	if (_m.y > 0)
+		_hdg = 90.0 - atan(_m.x / _m.y) * 180.0 / M_PI;
+	else if (_m.y < 0)
+		_hdg = 270.0 - atan(_m.x / _m.y) * 180.0 / M_PI;
+	else if (_m.x < 0)
+		_hdg = 180.0;
+	else
+		_hdg = 0.0;
 }
 
 int LIS3MDL::readTemp() const

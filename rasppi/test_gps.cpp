@@ -36,6 +36,8 @@ int main(int _argc, char* _argv[])
 	if (fd == -1)
 		return -1;
 
+	serialPuts(fd, "$PMTK314,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n");
+
 	while (run)
 	{
 		g = serialDataAvail(fd);
