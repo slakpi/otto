@@ -3,9 +3,11 @@
 #include <csignal>
 #include <ctime>
 #include <unistd.h>
+#include <wiringPi.h>
 #include <AveragingBuffer.hpp>
 #include "LSM6DS33.hpp"
 #include "LIS3MDL.hpp"
+#include "HD44780.hpp"
 
 #define DELAY 20000
 
@@ -34,6 +36,20 @@ int main(int _argc, char* _argv[])
 	double hdg;
 	int64_t t, r;
 	timespec spec;
+	HD44780 lcd;
+	char buf[17];
+
+	if (wiringPiSetup() == -1)
+	{
+		cerr << "Failed to initialize wiringPi.\n";
+		return -1;
+	}
+
+	if (!lcd.init())
+	{
+		cerr << "Failed to initialize LCD driver.\n";
+		return -1;
+	}
 
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
@@ -80,6 +96,10 @@ int main(int _argc, char* _argv[])
 			aa.x << "," << aa.y << "," << aa.z << "," << g.x << "," <<
 			g.y << "," << g.z << "," << ga.x << "," << ga.y << "," <<
 			ga.z << endl;
+
+		snprintf(buf, 17, "M%3d", (int)hdg);
+		lcd.setCursorPos(0, 0);
+		lcd.writeString(buf);
 
 		usleep(DELAY);
 	}

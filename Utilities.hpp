@@ -15,6 +15,12 @@ T max(const T &_a, const T &_b)
 	return (_a > _b ? _a : _b);
 }
 
+template<typename T>
+T clamp(const T &_a, const T &_l, const T &_h)
+{
+	return min(max(_a, _l), _h);
+}
+
 template<typename T> int sgn(const T &_val)
 {
 	return (T(0) < _val) - (_val < T(0));

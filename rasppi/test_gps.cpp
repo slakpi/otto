@@ -6,6 +6,7 @@
 #include <wiringPi.h>
 #include <wiringSerial.h>
 #include "NMEA.hpp"
+#include "HD44780.hpp"
 
 #define DELAY 100000
 
@@ -32,11 +33,27 @@ int main(int _argc, char* _argv[])
 	NMEA::NMEABase *b = NULL;
 	NMEA::GGA *gga = NULL;
 	NMEA::VTG *vtg = NULL;
+	HD44780 lcd;
 	timespec spec;
 	int64_t t, r;
+	int d;
+	double m;
+	char buf[17];
 
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
+
+	if (wiringPiSetup() == -1)
+	{
+		cerr << "Failed to setup wiringPi.\n";
+		return -1;
+	}
+
+	if (!lcd.init())
+	{
+		cerr << "Failed to setup LCD driver.\n";
+		return -1;
+	}
 
 	fd = serialOpen("/dev/ttyAMA0", 57600);
 
@@ -102,6 +119,30 @@ int main(int _argc, char* _argv[])
 					(gga->lon / (60.0 * 10000.0)) << "," <<
 					gga->altMSL << "," << vtg->magGTK << "," <<
 					vtg->ktsGS << endl;
+
+				d = (int)(gga->lat / (60.0 * 10000.0));
+				if (d < 0)
+					d = -d;
+
+				m = ((gga->lat % 600000) / 10000.0);
+				if (m < 0)
+					m = -m;
+
+				snprintf(buf, 17, "%c%3d %.1f GS%3d", gga->lat < 0 ? 'S' : 'N', d, m, (int)vtg->ktsGS);
+				lcd.setCursorPos(0, 0);
+				lcd.writeString(buf);
+
+				d = (int)(gga->lon / (60.0 * 10000.0));
+				if (d < 0)
+					d = -d;
+
+				m = ((gga->lon % 600000) / 10000.0);
+				if (m < 0)
+					m = -m;
+
+				snprintf(buf, 17, "%c%3d %.1f GT%3d", gga->lon < 0 ? 'W' : 'E', d, m, (int)vtg->magGTK);
+				lcd.setCursorPos(1, 0);
+				lcd.writeString(buf);
 
 				gga->destroy(), gga = NULL;
 				vtg->destroy(), vtg = NULL;
