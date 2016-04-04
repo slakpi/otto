@@ -1,3 +1,5 @@
+CC=gcc
+CCFLAGS=-O3 -c -Wall -Wno-strict-aliasing
 CXX=g++
 CXXFLAGS=-O3 -c -std=c++11 -Wall
 LDFLAGS=-lspatialite -lsqlite3 -lwiringPi -lpthread
@@ -7,7 +9,7 @@ OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
  $(OBJDIR)FlightDirector.o $(OBJDIR)GISDatabase.o $(OBJDIR)TimerSource.o\
  $(OBJDIR)Utilities.o $(OBJDIR)RpiAutopilot.o $(OBJDIR)RpiDataSource.o\
  $(OBJDIR)RpiTimerSource.o $(OBJDIR)LSM6DS33.o $(OBJDIR)LIS3MDL.o\
- $(OBJDIR)LS20031.o $(OBJDIR)NMEA.o
+ $(OBJDIR)LS20031.o $(OBJDIR)NMEA.o $(OBJDIR)Mahony_AHRS.o
 EXTOBJFILES=$(OBJDIR)HD44780.o
 
 all: otto tests rdbtool recoverydb
@@ -18,6 +20,14 @@ directories:
 	@echo Making output directories...
 	@mkdir -p $(OBJDIR)
 	@mkdir -p $(BINDIR)
+
+$(OBJDIR)%.o: ../%.c
+	@echo Compiling $<...
+	@$(CC) $(CCFLAGS) -o $@ $<
+
+$(OBJDIR)%.o: ./%.c
+	@echo Compiling $<...
+	@$(CC) $(CCFLAGS) -I../ -o $@ $<
 
 $(OBJDIR)%.o: ../%.cpp
 	@echo Compiling $<...
