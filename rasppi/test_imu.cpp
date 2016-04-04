@@ -9,9 +9,11 @@
 #include "LSM6DS33.hpp"
 #include "LIS3MDL.hpp"
 #include "HD44780.hpp"
-#include "Mahony_AHRS.h"
+#include "Madgwick_AHRS.h"
 
-#define DELAY 20000
+#define DELAY 19230
+//#define NO_BIAS_REMOVAL
+#define BIAS_SAMPLES 512
 
 using namespace std;
 
@@ -29,16 +31,19 @@ static void signalHandler(int _signal)
 }
 
 #define RAD2DEGF(_r) ((float)((_r) * 180.0f / M_PI))
+#define DEG2RADF(_d) ((float)((_d) * M_PI / 180.0f))
 
-void quaternionToEuler(float q[4], float e[3])
+void quaternionToYawPitchRoll(float q[4], float e[3])
 {
-   float sqw = q[0] * q[0];
-   float sqx = q[1] * q[1];
-   float sqy = q[2] * q[2];
-   float sqz = q[3] * q[3];
-   e[0] = atan2f(2.f * (q[1]*q[2] + q[3]*q[0]), sqx - sqy - sqz + sqw);
-   e[1] = asinf(-2.f * (q[1]*q[3] - q[2]*q[0]));
-   e[2] = atan2f(2.f * (q[2]*q[3] + q[1]*q[0]), -sqx - sqy + sqz + sqw);
+	float gx, gy, gz;
+
+	gx = 2 * (q[1] * q[3] - q[0] * q[2]);
+	gy = 2 * (q[0] * q[1] + q[2] * q[3]);
+	gz = q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3];
+
+	e[0] = RAD2DEGF(atan2(2 * q[1] * q[2] - 2 * q[0] * q[3], 2 * q[0] * q[0] + 2 * q[1] * q[1] - 1));
+	e[1] = RAD2DEGF(atan(gx / sqrt(gy * gy + gz * gz)));
+	e[2] = RAD2DEGF(atan(gy / sqrt(gx * gx + gz * gz)));
 }
 
 int main(int _argc, char* _argv[])
@@ -46,8 +51,10 @@ int main(int _argc, char* _argv[])
 	LIS3MDL imuMag;
 	LSM6DS33 imuGyroAccel;
 	HD44780 lcd;
-	Vector<double> m, a, g;
-	int64_t t, r;
+	double hdg;
+	Vector<double> m, a, g, gb;
+	AveragingBuffer gbx(BIAS_SAMPLES), gby(BIAS_SAMPLES), gbz(BIAS_SAMPLES);
+	int64_t t, t1, r, c;
 	timespec spec;
 	char buf[17];
 	float q[4], e[3];
@@ -79,11 +86,26 @@ int main(int _argc, char* _argv[])
 		return -1;
 	}
 
+#ifndef NO_BIAS_REMOVAL
+	lcd.clear();
+
+	snprintf(buf, 17, "  Calibrating   ");
+	lcd.setCursorPos(0, 0);
+	lcd.writeString(buf);
+
+	snprintf(buf, 17, "  KEEP  LEVEL   ");
+	lcd.setCursorPos(1, 0);
+	lcd.writeString(buf);
+
+	c = 0;
+#endif
+
 	clock_gettime(CLOCK_MONOTONIC, &spec);
 	r = spec.tv_sec * 1000000LL;
 	r += spec.tv_nsec / 1000LL;
+	t1 = r;
 
-	cout << "t,Mx,My,Mz,Ax,Ay,Az,Gx,Gy,Gz,P,R,Y\n";
+	cout << "t,Mx,My,Mz,Ax,Ay,Az,Gx,Gy,Gz,q0,q1,q2,q3,Y,P,R\n";
 
 	while (run)
 	{
@@ -92,30 +114,55 @@ int main(int _argc, char* _argv[])
 		t += spec.tv_nsec / 1000LL;
 		t -= r;
 
-		imuMag.readMag(m);
+		imuMag.readMag(m, hdg);
 		imuGyroAccel.readGyro(g);
 		imuGyroAccel.readAccel(a);
 
-		MahonyAHRSupdate(g.x, g.y, g.z, a.x, a.y, a.z, m.x, m.y, m.z);
+#ifndef NO_BIAS_REMOVAL
+		g.x -= (gb.x = gbx.pushSample(g.x));
+		g.y -= (gb.y = gby.pushSample(g.y));
+		g.z -= (gb.z = gbz.pushSample(g.z));
+#endif
+
+		g.x = DEG2RADF(g.x);
+		g.y = DEG2RADF(g.y);
+		g.z = DEG2RADF(g.z);
+
+		deltat = ((float)(t - t1) / 1000000.0f);
+		MadgwickAHRSupdate(g.x, g.y, g.z, a.x, a.y, a.z, m.x, m.y, m.z);
 		q[0] = q0;
 		q[1] = q1;
 		q[2] = q2;
 		q[3] = q3;
-		quaternionToEuler(q, e);
 
-		cout << m.x << "," << m.y << "," << m.z << "," << a.x << "," <<
-			a.y << "," << a.z << "," << g.x << "," << g.y << "," <<
-			g.z << "," << RAD2DEGF(e[0]) << "," << RAD2DEGF(e[1]) << "," <<
-			RAD2DEGF(e[2]) << endl;
+#ifndef NO_BIAS_REMOVAL
+		if (c < BIAS_SAMPLES)
+		{
+			++c;
+			t1 = t;
+			usleep(DELAY);
+			continue;
+		}
+#endif
 
-		snprintf(buf, 17, "%6.1f %6.1f", RAD2DEGF(e[0]), RAD2DEGF(e[1]));
+		quaternionToYawPitchRoll(q, e);
+
+		cout << t << "," <<
+			m.x << "," << m.y << "," << m.z << "," <<
+			a.x << "," << a.y << "," << a.z << "," <<
+			g.x << "," << g.y << "," << g.z << "," <<
+			q[0] << "," << q[1] << "," << q[2] << "," << q[3] << "," <<
+			e[0] << "," << e[1] << "," << e[2] << endl;
+
+		snprintf(buf, 17, "M%6d Y%6.1f", (int)hdg, e[0]);
 		lcd.setCursorPos(0, 0);
 		lcd.writeString(buf);
 
-		snprintf(buf, 17, "%6.1f", RAD2DEGF(e[2]));
+		snprintf(buf, 17, "P%6.1f R%6.1f", e[1], e[2]);
 		lcd.setCursorPos(1, 0);
 		lcd.writeString(buf);
 
+		t1 = t;
 		usleep(DELAY);
 	}
 

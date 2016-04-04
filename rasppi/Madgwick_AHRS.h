@@ -10,8 +10,8 @@
 // 02/10/2011	SOH Madgwick	Optimised for reduced CPU load
 //
 //=====================================================================================================
-#ifndef MadgwickAHRS_h
-#define MadgwickAHRS_h
+#ifndef Madgwick_AHRS_h
+#define Madgwick_AHRS_h
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +20,7 @@ extern "C" {
 //----------------------------------------------------------------------------------------------------
 // Variable declaration
 
+extern float deltat;
 extern volatile float beta;				// algorithm gain
 extern volatile float q0, q1, q2, q3;	// quaternion of sensor frame relative to auxiliary frame
 
