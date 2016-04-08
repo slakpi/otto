@@ -89,11 +89,13 @@ FlightDirector::~FlightDirector()
 
 void FlightDirector::enable()
 {
+	ap->enable();
 	timer->setTimer(1000);
 }
 
 void FlightDirector::disable()
 {
+	ap->disable();
 	timer->killTimer();
 }
 
@@ -141,10 +143,25 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 
 	dH = fmod(fmod(targetHdg - d.hdg, 360.0) + 540.0, 360.0) - 180.0;
 	Rt = min(pow(1.0472941228, min(fabs(dH), maxHdgErr)) - 1, maxRoT) * sgn(dH);
+
+	if (d.avail & DATA_ROLL)
+	{
+		if (d.roll < -30.0 || d.roll > 30.0)
+/*	reduce the target rate-of-turn if we have excessive bank. */
+			Rt -= (fabs(d.roll) - 30.0) / 60.0 * sgn(d.roll);
+	}
+	
 	dR = Rt - Ra;
 	Ar = min(log10(min(fabs(dR), maxRoT) + 0.33) + 0.48, 1.0) * sgn(dR);
-
-	ap->setRudderDeflection((float)Ar, (float)targetHdg);
+	
+	if (d.avail & DATA_PITCH)
+	{
+		if (d.pitch < -20.0 || d.pitch > 20.0)
+/*	if the pitch is too excessive, just center the rudder to prevent spins. */
+			Ar = 0.0f;
+	}
+	
+	ap->setRudderDeflection((float)Ar);
 }
 
 void FlightDirector::updateProjectedDistance(unsigned int _elapsedMilliseconds)

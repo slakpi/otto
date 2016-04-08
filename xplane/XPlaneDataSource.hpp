@@ -28,6 +28,9 @@ private:
 	XPLMDataRef altRef;
 	XPLMDataRef hdgRef;
 	XPLMDataRef gsRef;
+	XPLMDataRef pitchRef;
+	XPLMDataRef rollRef;
+	XPLMDataRef yawRef;
 };
 
 #endif

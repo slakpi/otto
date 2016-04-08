@@ -21,9 +21,13 @@ public:
 	virtual ~Autopilot();
 	
 public:
+	virtual void enable() = 0;
+	
+	virtual void disable() = 0;
+	
 	virtual float getRudderDeflection() const = 0;
 	
-	virtual void setRudderDeflection(float _deflection, float _hdg) = 0;
+	virtual void setRudderDeflection(float _deflection) = 0;
 };
 
 #endif

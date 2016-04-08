@@ -17,6 +17,10 @@ public:
 	virtual ~RpiAutopilot();
 	
 public:
+	virtual void enable();
+	
+	virtual void disable();
+
 	virtual float getRudderDeflection() const;
 	
 	virtual void setRudderDeflection(float _deflection);

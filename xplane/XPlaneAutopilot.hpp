@@ -20,14 +20,17 @@ public:
 	virtual ~XPlaneAutopilot();
 	
 public:
+	virtual void enable();
+	
+	virtual void disable();
+	
 	virtual float getRudderDeflection() const;
 	
-	virtual void setRudderDeflection(float _deflection, float _hdg);
+	virtual void setRudderDeflection(float _deflection);
 	
 private:
 	XPLMDataRef fltCtrlOverrideRef;
 	XPLMDataRef rudderDeflectionRef;
-	XPLMDataRef headingBugRef;
 };
 
 #endif
