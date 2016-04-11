@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <iostream>
+#include <iomanip>
 #include <csignal>
 #include <ctime>
 #include <cmath>
@@ -11,9 +12,11 @@
 #include "HD44780.hpp"
 #include "Madgwick_AHRS.h"
 
-#define DELAY 19230
+#define NO_LCD_OUTPUT
+#define DELAY			2403
 //#define NO_BIAS_REMOVAL
-#define BIAS_SAMPLES 512
+#define BIAS_SAMPLES 	512
+#define BIAS_WAIT		10 * 1000000
 
 using namespace std;
 
@@ -33,7 +36,7 @@ static void signalHandler(int _signal)
 #define RAD2DEGF(_r) ((float)((_r) * 180.0f / M_PI))
 #define DEG2RADF(_d) ((float)((_d) * M_PI / 180.0f))
 
-void quaternionToYawPitchRoll(float q[4], float e[3])
+static void quaternionToYawPitchRoll(float q[4], float e[3])
 {
 	float gx, gy, gz;
 
@@ -50,14 +53,18 @@ int main(int _argc, char* _argv[])
 {
 	LIS3MDL imuMag;
 	LSM6DS33 imuGyroAccel;
+#ifndef NO_LCD_OUTPUT
 	HD44780 lcd;
-	double hdg;
-	Vector<double> m, a, g, gb;
-	AveragingBuffer gbx(BIAS_SAMPLES), gby(BIAS_SAMPLES), gbz(BIAS_SAMPLES);
-	int64_t t, t1, r, c;
-	timespec spec;
 	char buf[17];
+#endif
+	DVector m, a, g, gb;
+	AveragingBuffer gbx(BIAS_SAMPLES), gby(BIAS_SAMPLES), gbz(BIAS_SAMPLES);
+	int64_t t, t1, r;
+	timespec spec;
 	float q[4], e[3];
+
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
 
 	if (wiringPiSetup() == -1)
 	{
@@ -65,14 +72,13 @@ int main(int _argc, char* _argv[])
 		return -1;
 	}
 
+#ifndef NO_LCD_OUTPUT
 	if (!lcd.init())
 	{
 		cerr << "Failed to initialize LCD driver.\n";
 		return -1;
 	}
-
-	signal(SIGINT, signalHandler);
-	signal(SIGTERM, signalHandler);
+#endif
 
 	if (!imuMag.init())
 	{
@@ -86,6 +92,7 @@ int main(int _argc, char* _argv[])
 		return -1;
 	}
 
+#ifndef NO_LCD_OUTPUT
 #ifndef NO_BIAS_REMOVAL
 	lcd.clear();
 
@@ -96,8 +103,7 @@ int main(int _argc, char* _argv[])
 	snprintf(buf, 17, "  KEEP  LEVEL   ");
 	lcd.setCursorPos(1, 0);
 	lcd.writeString(buf);
-
-	c = 0;
+#endif
 #endif
 
 	clock_gettime(CLOCK_MONOTONIC, &spec);
@@ -114,7 +120,7 @@ int main(int _argc, char* _argv[])
 		t += spec.tv_nsec / 1000LL;
 		t -= r;
 
-		imuMag.readMag(m, hdg);
+		imuMag.readMag(m);
 		imuGyroAccel.readGyro(g);
 		imuGyroAccel.readAccel(a);
 
@@ -136,31 +142,30 @@ int main(int _argc, char* _argv[])
 		q[3] = q3;
 
 #ifndef NO_BIAS_REMOVAL
-		if (c < BIAS_SAMPLES)
+		if (t > BIAS_WAIT)
 		{
-			++c;
-			t1 = t;
-			usleep(DELAY);
-			continue;
+#endif
+			quaternionToYawPitchRoll(q, e);
+
+			cout << t << "," <<
+				m.x << "," << m.y << "," << m.z << "," <<
+				a.x << "," << a.y << "," << a.z << "," <<
+				g.x << "," << g.y << "," << g.z << "," <<
+				q[0] << "," << q[1] << "," << q[2] << "," << q[3] << "," <<
+				e[0] << "," << e[1] << "," << e[2] << endl;
+
+#ifndef NO_LCD_OUTPUT
+			snprintf(buf, 17, "M%6d Y%6.1f", (int)hdg, e[0]);
+			lcd.setCursorPos(0, 0);
+			lcd.writeString(buf);
+
+			snprintf(buf, 17, "P%6.1f R%6.1f", e[1], e[2]);
+			lcd.setCursorPos(1, 0);
+			lcd.writeString(buf);
+#endif
+#ifndef NO_BIAS_WAIT
 		}
 #endif
-
-		quaternionToYawPitchRoll(q, e);
-
-		cout << t << "," <<
-			m.x << "," << m.y << "," << m.z << "," <<
-			a.x << "," << a.y << "," << a.z << "," <<
-			g.x << "," << g.y << "," << g.z << "," <<
-			q[0] << "," << q[1] << "," << q[2] << "," << q[3] << "," <<
-			e[0] << "," << e[1] << "," << e[2] << endl;
-
-		snprintf(buf, 17, "M%6d Y%6.1f", (int)hdg, e[0]);
-		lcd.setCursorPos(0, 0);
-		lcd.writeString(buf);
-
-		snprintf(buf, 17, "P%6.1f R%6.1f", e[1], e[2]);
-		lcd.setCursorPos(1, 0);
-		lcd.writeString(buf);
 
 		t1 = t;
 		usleep(DELAY);

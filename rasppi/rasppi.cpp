@@ -1,17 +1,15 @@
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <cerrno>
 #include <unistd.h>
-#include <syslog.h>
-#include <cstring>
+#include <cstdlib>
 #include <csignal>
-#include <cstdarg>
-#include "LSM6DS33.hpp"
-#include "LIS3MDL.hpp"
-#include "LS20031.hpp"
+#include <cfloat>
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <AveragingBuffer.hpp>
+#include <wiringPi.h>
+#include "RpiDataSource.hpp"
+
+using namespace std;
 
 static int running = 1;
 
@@ -26,6 +24,7 @@ static void signalHandler(int _signum)
 	}
 }
 
+#if 0
 static void logCallback(const char *_fmt, ...)
 {
 	int len;
@@ -44,38 +43,131 @@ static void logCallback(const char *_fmt, ...)
 	syslog(LOG_INFO, str);
 	delete [] str;
 }
+#endif
 
 int main(int _argc, char* _argv[])
 {
-	pid_t pid, sid;
-	int loop = 0;
+	RpiDataSource rds;
+	Data sample;
+	RawData rawSample;
+	DVector mMax = {-DBL_MAX, -DBL_MAX, -DBL_MAX};
+	DVector mMin = {DBL_MAX, DBL_MAX, DBL_MAX};
+	DVector mBias, mScale, gBias;
+	AveragingBuffer gx(400), gy(400), gz(400);
+	string l;
+	double avg;
+	int i;
 
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
 
-	openlog("otto", LOG_NDELAY | LOG_PID, LOG_USER);
-	syslog(LOG_INFO, "OTTO daemon starting...");
-
-	pid = fork();
-	if (pid < 0)	return -1;
-	if (pid > 0)	return 0;
-
-	umask(0);
-
-	sid = setsid();
-	if (sid < 0)
+	if (wiringPiSetup() != 0)
+	{
+		cout << "Failed to initialize wiringPi.\n";
 		return -1;
+	}
 
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
+	cout << "Press enter, then wave autopilot unit in a figure-8...";
+	getline(cin, l);
+
+	if (!rds.start())
+	{
+		cerr << "Failed to start data source.\n";
+		return -1;
+	}
+
+	for (i = 0; i < 400 && running != 0; ++i)
+	{
+		rds.rawSample(&rawSample);
+
+		mMax.x = max(mMax.x, rawSample.m.x);
+		mMax.y = max(mMax.y, rawSample.m.y);
+		mMax.z = max(mMax.z, rawSample.m.z);
+
+		mMin.x = min(mMin.x, rawSample.m.x);
+		mMin.y = min(mMin.y, rawSample.m.y);
+		mMin.z = min(mMin.z, rawSample.m.z);
+
+		usleep(25000);
+	}
+
+	rds.stop();
+
+	cout << endl;
+
+	mBias.x = (mMax.x + mMin.x) / 2.0;
+	mBias.y = (mMax.y + mMin.y) / 2.0;
+	mBias.z = (mMax.z + mMin.z) / 2.0;
+
+	cout << "Magnetometer Samples: " << i << endl <<
+			"X bias : " << mBias.x << endl <<
+			"Y bias : " << mBias.y << endl <<
+			"Z bias : " << mBias.z << endl;
+
+	mScale.x = (mMax.x - mMin.x) / 2.0;
+	mScale.y = (mMax.y - mMin.y) / 2.0;
+	mScale.z = (mMax.z - mMin.z) / 2.0;
+	avg = (mScale.x + mScale.y + mScale.z) / 3.0;
+
+	mScale.x = avg / mScale.x;
+	mScale.y = avg / mScale.y;
+	mScale.z = avg / mScale.z;
+
+	cout << "X scale: " << mScale.x << endl <<
+			"Y scale: " << mScale.y << endl <<
+			"Z scale: " << mScale.z << endl << endl;
+
+	cout << "Set the autopilot unit down on a level surface, then press enter...";
+	getline(cin, l);
+
+	if (!rds.start())
+	{
+		cerr << "Failed to start data source.\n";
+		return -1;
+	}
+
+	for (i = 0; i < 400 && running != 0; ++i)
+	{
+		rds.rawSample(&rawSample);
+
+		gBias.x = gx.pushSample(rawSample.g.x);
+		gBias.y = gy.pushSample(rawSample.g.y);
+		gBias.z = gz.pushSample(rawSample.g.z);
+
+		usleep(25000);
+	}
+
+	rds.stop();
+
+	cout << "Gyroscope Samples: " << i << endl <<
+			"X bias : " << mBias.x << endl <<
+			"Y bias : " << mBias.y << endl <<
+			"Z bias : " << mBias.z << endl << endl;
+
+	cout << "Press enter to run with bias / scale calculations...";
+
+	if (!rds.start(gBias, mBias, mScale))
+	{
+		cerr << "Failed to start data source.\n";
+		return -1;
+	}
 
 	while (running != 0)
 	{
-		sleep(5);
+		rds.sample(&sample);
+
+		if (sample.yaw < 0)
+			sample.yaw += 360;
+
+		cout << "\rYaw: " << setw(6) << setprecision(4) << sample.yaw << " " <<
+				"Pitch: " << setw(6) << setprecision(4) << sample.pitch << " " <<
+				"Roll: " << setw(6) << setprecision(4) << sample.roll;
+		cout.flush();
+
+		usleep(1000000);
 	}
 
-	closelog();
+	rds.stop();
 
 	return 0;
 }

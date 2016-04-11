@@ -33,7 +33,7 @@ float XPlaneAutopilot::getRudderDeflection() const
 {
 	if (rudderDeflectionRef == nullptr)
 		return 0.0f;
-	
+
 	return XPLMGetDataf(rudderDeflectionRef) / maxRudder;
 }
 
@@ -41,6 +41,6 @@ void XPlaneAutopilot::setRudderDeflection(float _deflection)
 {
 	if (rudderDeflectionRef == nullptr)
 		return;
-	
+
 	XPLMSetDataf(rudderDeflectionRef, min(max(_deflection, -1.0f), 1.0f) * maxRudder);
 }

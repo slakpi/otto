@@ -50,9 +50,7 @@ public:
 
 	void uninit();
 
-	void readMag(Vector<double> &_m) const;
-
-	void readMag(Vector<double> &_m, double &_hdg) const;
+	void readMag(DVector &_m) const;
 
 	int readTemp() const;
 

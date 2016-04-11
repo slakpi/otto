@@ -9,31 +9,31 @@
 
 /*	CTRL_1_DEFAULT
 
-	1       00 110 0        0
+	1       10 000 1        0
 	-       -- --- -        -
 	TEMP_EN OM DO  FAST_ODR ST
 
 	TEMP_EN		b1		= Temperature sensor enabled
-	OM			b00		= X & Y in low power mode
-	DO			b110	= 40 Hz
-	FAST_ODR	b0		= Fast ODR disabled
+	OM			b10		= X & Y in high-performance mode
+	DO			xxxx	= Ignored (300 Hz when OM = b10 and FAST_ODR = b1)
+	FAST_ODR	b1		= Fast ODR disabled
 	ST			b0		= Self-test disabled
  */
 
-#define CTRL_1_DEFAULT				0x98
+#define CTRL_1_DEFAULT				0xC2
 
 /*	CTRL_2_DEFAULT
 
-	0 01 0 0      0        0 0
+	0 00 0 0      0        0 0
 	- -- - -      -        - -
 	0 FS 0 REBOOT SOFT_RST 0 0
 
-	FS			b01		= +/- 8 gauss
+	FS			b00		= +/- 4 gauss
  */
 
-#define CTRL_2_DEFAULT				0x20
-#define MIN_MAG						-8
-#define MAX_MAG						8
+#define CTRL_2_DEFAULT				0x00
+#define MIN_MAG						-4
+#define MAX_MAG						 4
 
 /*	CTRL_3_DEFAULT
 
@@ -41,7 +41,7 @@
 	- - -  - - -   --
 	0 0 LP 0 0 SIM MD
 
-	LP			b0		= Low power mode disabled
+	LP			b0		= Low-power mode disabled
 	SIM			b0		= SPI serial interface disabled
 	MD			b00		= Continuous conversion mode
  */
@@ -50,15 +50,15 @@
 
 /*	CTRL_4_DEFAULT
 
-	0 0 0 0 00  0   0
+	0 0 0 0 10  0   0
 	- - - - --  -   -
 	0 0 0 0 OMZ BLE 0
 
-	OMZ			b00		= Low power mode for Z-axis
+	OMZ			b10		= Z in high-performance mode
 	BLE			b0		= LSb at lower address
  */
 
-#define CTRL_4_DEFAULT				0x00
+#define CTRL_4_DEFAULT				0x04
 
 static double makeMag(int16_t _v)
 {
@@ -97,7 +97,7 @@ void LIS3MDL::uninit()
 	fd = -1;
 }
 
-void LIS3MDL::readMag(Vector<double> &_m) const
+void LIS3MDL::readMag(DVector &_m) const
 {
 	u_int8_t lx, hx, ly, hy, lz, hz;
 
@@ -116,20 +116,6 @@ void LIS3MDL::readMag(Vector<double> &_m) const
 	_m.x = makeMag((hx << 8) | lx);
 	_m.y = makeMag((hy << 8) | ly);
 	_m.z = makeMag((hz << 8) | lz);
-}
-
-void LIS3MDL::readMag(Vector<double> &_m, double &_hdg) const
-{
-	readMag(_m);
-
-	if (_m.y > 0)
-		_hdg = 90.0 - atan(_m.x / _m.y) * 180.0 / M_PI;
-	else if (_m.y < 0)
-		_hdg = 270.0 - atan(_m.x / _m.y) * 180.0 / M_PI;
-	else if (_m.x < 0)
-		_hdg = 180.0;
-	else
-		_hdg = 0.0;
 }
 
 int LIS3MDL::readTemp() const

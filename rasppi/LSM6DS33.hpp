@@ -97,9 +97,9 @@ public:
 
 	void uninit();
 
-	void readAccel(Vector<double> &_a) const;
+	void readAccel(DVector &_a) const;
 
-	void readGyro(Vector<double> &_g) const;
+	void readGyro(DVector &_g) const;
 
 private:
 	bool init2(u_int8_t _addr);

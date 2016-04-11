@@ -8,18 +8,18 @@
 
 /*	ACCEL_MODE_DEFAULT
 
-	0011  11  10
+	0110  10  00
     ----  --  --
     ODR   FS  BW
 
-	ODR	b0011	= 52 Hz (low power)
-	FS	b11 	= +/- 8g
-	BW	b10		= 100 Hz AA filter
+	ODR	b0110	= 416 Hz
+	FS	b10 	= +/- 4g
+	BW	b00		= 400 Hz AA filter
  */
 
-#define ACCEL_MODE_DEFAULT		0x3e
-#define MIN_ACCEL				-8
-#define MAX_ACCEL				8
+#define ACCEL_MODE_DEFAULT		0x68
+#define MIN_ACCEL				-4
+#define MAX_ACCEL				 4
 
 /*	GYRO_MODE_DEFAULT
 
@@ -33,7 +33,7 @@
 
 #define GYRO_MODE_DEFAULT		0x30
 #define MIN_GYRO				-122.5
-#define MAX_GYRO				122.5
+#define MAX_GYRO				 122.5
 
 /*	COMMON_MODE_DEFAULT
 
@@ -86,7 +86,7 @@ void LSM6DS33::uninit()
 	fd = -1;
 }
 
-void LSM6DS33::readAccel(Vector<double> &_a) const
+void LSM6DS33::readAccel(DVector &_a) const
 {
 	u_int8_t lx, hx, ly, hy, lz, hz;
 
@@ -107,7 +107,7 @@ void LSM6DS33::readAccel(Vector<double> &_a) const
 	_a.z = makeAccel((hz << 8) | lz);
 }
 
-void LSM6DS33::readGyro(Vector<double> &_g) const
+void LSM6DS33::readGyro(DVector &_g) const
 {
 	u_int8_t lx, hx, ly, hy, lz, hz;
 

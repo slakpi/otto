@@ -6,15 +6,14 @@ LDFLAGS=-lspatialite -lsqlite3 -lwiringPi -lpthread
 OBJDIR=./obj/
 BINDIR=./bin/
 OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
- $(OBJDIR)FlightDirector.o $(OBJDIR)GISDatabase.o $(OBJDIR)TimerSource.o\
- $(OBJDIR)Utilities.o $(OBJDIR)RpiAutopilot.o $(OBJDIR)RpiDataSource.o\
- $(OBJDIR)RpiTimerSource.o $(OBJDIR)LSM6DS33.o $(OBJDIR)LIS3MDL.o\
- $(OBJDIR)LS20031.o $(OBJDIR)NMEA.o $(OBJDIR)Madgwick_AHRS.o
+ $(OBJDIR)FlightDirector.o $(OBJDIR)GISDatabase.o $(OBJDIR)Utilities.o\
+ $(OBJDIR)RpiAutopilot.o $(OBJDIR)RpiDataSource.o $(OBJDIR)LSM6DS33.o\
+ $(OBJDIR)LIS3MDL.o $(OBJDIR)LS20031.o $(OBJDIR)NMEA.o $(OBJDIR)Madgwick_AHRS.o
 EXTOBJFILES=$(OBJDIR)HD44780.o
 
 all: otto tests rdbtool recoverydb
 
-tests: test_imu test_gps
+tests: test_imu test_gps test_clr
 
 directories:
 	@echo Making output directories...
@@ -48,6 +47,10 @@ test_gps: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_gps.o
 test_imu: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_imu.o
 	@echo Linking test_imu...
 	@$(CXX) $(OBJFILES) $(OBJDIR)HD44780.o $(OBJDIR)test_imu.o -o $(BINDIR)test_imu $(LDFLAGS)
+
+test_clr: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_clr.o
+	@echo Linking test_clr...
+	@$(CXX) $(OBJFILES) $(OBJDIR)HD44780.o $(OBJDIR)test_clr.o -o $(BINDIR)test_clr $(LDFLAGS)
 
 rdbtool: directories
 	@echo Building recoverydb tool...
