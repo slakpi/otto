@@ -3,7 +3,6 @@
 
 #include "Autopilot.hpp"
 #include "DataSource.hpp"
-#include "TimerSource.hpp"
 #include "GISDatabase.hpp"
 #include "AveragingBuffer.hpp"
 
@@ -19,11 +18,8 @@ private:
 		circleMode
 	};
 	
-private:
-	static void timerCallback(double _interval, void *_arg);
-	
 public:
-	FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_timer, GISDatabase *_db, LogCallback _log);
+	FlightDirector(Autopilot *_ap, DataSource *_data, GISDatabase *_db, LogCallback _log);
 	
 public:
 	~FlightDirector();
@@ -51,7 +47,6 @@ private:
 private:
 	Autopilot *ap;
 	DataSource *data;
-	TimerSource *timer;
 	GISDatabase *db;
 	LogCallback log;
 	Mode mode;

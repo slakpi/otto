@@ -32,24 +32,9 @@ static inline double maxCircleDistance(double _projDistance)
 	return max(min(_projDistance / 2.0 - 1.0, 5.0), 1.0);
 }
 
-void FlightDirector::timerCallback(double _interval, void *_arg)
-{
-	FlightDirector *fd = static_cast<FlightDirector*>(_arg);
-
-	if (fd == nullptr)
-		return;
-
-/*	clamp the lower bound of `_interval' to zero and convert it to milliseconds
-	using normal rounding.
- */
-
-	fd->refresh((unsigned int)(max(_interval, 0.0) * 1000 + 0.5));
-}
-
-FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_timer, GISDatabase *_db, LogCallback _log)
+FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, GISDatabase *_db, LogCallback _log)
 :	ap(_ap),
 	data(_data),
-	timer(_timer),
 	db(_db),
 	log(_log),
 	mode(seekMode),
@@ -65,8 +50,6 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 		throw std::invalid_argument("_ap");
 	if (data == nullptr)
 		throw std::invalid_argument("_data");
-	if (timer == nullptr)
-		throw std::invalid_argument("_timer");
 	if (db == nullptr)
 		throw std::invalid_argument("_db");
 	if (log == nullptr)
@@ -75,28 +58,23 @@ FlightDirector::FlightDirector(Autopilot *_ap, DataSource *_data, TimerSource *_
 	memset(&projLoc, 0, sizeof(projLoc));
 	memset(&recoveryLoc, 0, sizeof(recoveryLoc));
 	memset(&originLoc, 0, sizeof(originLoc));
-
-	timer->setCallback(timerCallback, this);
 }
 
 FlightDirector::~FlightDirector()
 {
 	delete ap;
 	delete data;
-	delete timer;
 	delete db;
 }
 
 void FlightDirector::enable()
 {
 	ap->enable();
-	timer->setTimer(1000);
 }
 
 void FlightDirector::disable()
 {
 	ap->disable();
-	timer->killTimer();
 }
 
 void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
@@ -229,7 +207,8 @@ void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
 		recoveryCourse = brg;
 		(*log)("OTTO: tracking to %s (elev. %.1f) on a course of %.0f.\n",
 			loc.ident.c_str(),
-			loc.elev, brg);
+			loc.elev,
+			brg);
 	}
 	else
 	{

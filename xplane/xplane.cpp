@@ -7,13 +7,23 @@
 #endif
 #include <XPLM/XPLMPlugin.h>
 #include <XPLM/XPLMPlanes.h>
+#include <XPLM/XPLMProcessing.h>
 #include <XPLM/XPLMUtilities.h>
 #include "FlightDirector.hpp"
+#include "Utilities.hpp"
 #include "XPlaneAutopilot.hpp"
 #include "XPlaneDataSource.hpp"
-#include "XPlaneTimerSource.hpp"
+
+#define UPDATE_INTERVAL 1.0f
 
 static FlightDirector *fd;
+
+static float flightLoopCallback(float _elapsedSinceLastCall, float _elapsedSinceLastFlightLoop, int _counter, void *_arg)
+{
+	fd->refresh((unsigned int)(max(_elapsedSinceLastCall, 0.0f) * 1000 + 0.5));
+	
+	return UPDATE_INTERVAL;
+}
 
 static void logCallback(const char *_fmt, ...)
 {
@@ -72,8 +82,10 @@ PLUGIN_API int XPluginStart(char *_outName, char *_outSig, char *_outDesc)
 	if (!db->isOpen())
 		logCallback("OTTO: failed to open recovery database.\n");
 	
-	fd = new FlightDirector(new XPlaneAutopilot(), new XPlaneDataSource(), new XPlaneTimerSource(), db, logCallback);
+	fd = new FlightDirector(new XPlaneAutopilot(), new XPlaneDataSource(), db, logCallback);
 
+	XPLMRegisterFlightLoopCallback(flightLoopCallback, UPDATE_INTERVAL, fd);
+	
 	return 1;
 }
 
@@ -81,16 +93,22 @@ PLUGIN_API int XPluginEnable()
 {
 	fd->enable();
 	
+	XPLMSetFlightLoopCallbackInterval(flightLoopCallback, UPDATE_INTERVAL, 0, fd);
+
 	return 1;
 }
 
 PLUGIN_API void XPluginDisable()
 {
+	XPLMSetFlightLoopCallbackInterval(flightLoopCallback, 0.0f, 0, fd);
+	
 	fd->disable();
 }
 
 PLUGIN_API void XPluginStop()
 {
+	XPLMUnregisterFlightLoopCallback(flightLoopCallback, fd);
+	
 	delete fd;
 }
 
