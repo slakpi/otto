@@ -92,9 +92,9 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 	ret = sqlite3_prepare_v2(
 	 db,
 	 "SELECT pkid, ident, elev, location FROM recovery "
-	 "WHERE PtDistWithin(location, ?1, ?2) = 1 AND "
-	 " Azimuth(location, ?1) >= ?3 AND "
-	 " Azimuth(location, ?1) <= ?4 "
+	 "WHERE PtDistWithin(?1, location, ?2) = 1 AND "
+	 " Azimuth(?1, location) >= ?3 AND "
+	 " Azimuth(?1, location) <= ?4 "
 	 "ORDER BY Distance(?1, location) ASC",
 	 -1,
 	 &stmt,
