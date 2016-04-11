@@ -7,10 +7,9 @@
 #define DATA_ALT		0x2
 #define DATA_HDG		0x4
 #define DATA_GS			0x8
-#define DATA_MAGHDG		0x10
-#define DATA_PITCH		0x20
-#define DATA_ROLL		0x40
-#define DATA_YAW		0x80
+#define DATA_PITCH		0x10
+#define DATA_ROLL		0x20
+#define DATA_YAW		0x40
 
 struct Data
 {
@@ -19,7 +18,6 @@ struct Data
 	double alt;			// feet
 	double hdg;			// degrees (ground track)
 	double gs;			// knots
-	double magHdg;		// degrees (magnetic heading)
 	double pitch;		// degrees
 	double roll;		// degrees
 	double yaw;			// degrees

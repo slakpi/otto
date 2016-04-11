@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstring>
 #include <cstdarg>
 #include <cstdio>
@@ -15,6 +16,8 @@
 #include "XPlaneDataSource.hpp"
 
 #define UPDATE_INTERVAL 1.0f
+
+using namespace std;
 
 static FlightDirector *fd;
 

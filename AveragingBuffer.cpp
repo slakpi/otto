@@ -1,7 +1,10 @@
 #include <stdexcept>
+#include <algorithm>
 #include <cstring>
 #include "AveragingBuffer.hpp"
 #include "Utilities.hpp"
+
+using namespace std;
 
 AveragingBuffer::AveragingBuffer(unsigned int _bufferLen)
 :	i(0),

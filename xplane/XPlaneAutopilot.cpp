@@ -1,5 +1,8 @@
+#include <algorithm>
 #include "XPlaneAutopilot.hpp"
 #include "Utilities.hpp"
+
+using namespace std;
 
 static const float maxRudder = 0.5f;
 

@@ -1,10 +1,13 @@
 #include <stdexcept>
+#include <algorithm>
 #include <string>
 #include <cstring>
 #include <cfloat>
 #include "FlightDirector.hpp"
 #include "GISDatabase.hpp"
 #include "Utilities.hpp"
+
+using namespace std;
 
 static const unsigned int rateOfTurnDelay = 2;
 static const unsigned int verticalSpeedDelay = 5;
@@ -109,26 +112,24 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 
 						  |dH|
 	  Rt = ( 1.0472941228      - 1 ) * sgn( dH )
-
-	the rudder angle follows a logarithmic curve with a steeper response when the delta
-	between the target rate of turn and the actual rate of turn approaches zero.  the
-	logarithmic curve hits +/- 1 units of rudder deflection at the 3 degree per second
-	maximum rate of turn. dR is positive for right deflection and negative for left
-	deflection.
-
-	  Ar = ( log10( |dR| + .33 ) + .48 ) * sgn( dR )
  */
 
 	dH = fmod(fmod(targetHdg - d.hdg, 360.0) + 540.0, 360.0) - 180.0;
 	Rt = min(pow(1.0472941228, min(fabs(dH), maxHdgErr)) - 1, maxRoT) * sgn(dH);
 
 	if (d.avail & DATA_ROLL)
-	{
-		if (d.roll < -30.0 || d.roll > 30.0)
 /*	reduce the target rate-of-turn if we have excessive bank. */
-			Rt -= (fabs(d.roll) - 30.0) / 60.0 * sgn(d.roll);
-	}
-	
+		Rt -= (max(fabs(d.roll), 30.0) - 30.0) / 60.0 * sgn(d.roll);
+
+/*	the rudder angle follows a logarithmic curve with a steeper response when the delta
+	between the target rate of turn and the actual rate of turn approaches zero.  the
+	logarithmic curve hits +/- 1 units of rudder deflection at the 3 degree per second
+	maximum rate of turn. dR is positive for right deflection and negative for left
+	deflection.
+	 
+	  Ar = ( log10( |dR| + .33 ) + .48 ) * sgn( dR )
+ */
+
 	dR = Rt - Ra;
 	Ar = min(log10(min(fabs(dR), maxRoT) + 0.33) + 0.48, 1.0) * sgn(dR);
 	
@@ -144,9 +145,6 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 
 void FlightDirector::updateProjectedDistance(unsigned int _elapsedMilliseconds)
 {
-	double av = verticalSpeed.average();
-	double ag = max(groundSpeed.average(), 0.0);
-	double agl = lastSample.alt;
 
 /*	assume a nominal -1 ft/s if the average vertical speed is greater than -1 ft/s.  this
 	both protects from division by zero and effectively assumes level flight if the glider
@@ -157,8 +155,10 @@ void FlightDirector::updateProjectedDistance(unsigned int _elapsedMilliseconds)
 	clamp distance to 3,000 nm.  this keeps the projections from getting silly.
  */
 
-	av = (av > -1 ? -1 : av);
-
+	double av = min(verticalSpeed.average(), -1.0);
+	double ag = max(groundSpeed.average(), 0.0);
+	double agl = lastSample.alt;
+	
 	if (recoveryLoc.id != -1)
 		agl -= recoveryLoc.elev;
 	

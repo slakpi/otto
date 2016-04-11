@@ -1,4 +1,7 @@
+#include <algorithm>
 #include "Utilities.hpp"
+
+using namespace std;
 
 static const double R = 3440.277; //mean Earth radius in NM.
 
