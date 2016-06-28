@@ -2,16 +2,35 @@
 #include <cstdlib>
 #include <csignal>
 #include <cfloat>
+#include <cstring>
 #include <iostream>
 #include <iomanip>
 #include <string>
-#include <AveragingBuffer.hpp>
+#include <algorithm>
+#include <ncurses.h>
 #include <wiringPi.h>
+#include <AveragingBuffer.hpp>
 #include "RpiDataSource.hpp"
 
 using namespace std;
 
 static int running = 1;
+
+static const char *title = "PREFLIGHT CHECKLIST";
+
+static const char* checklist[] = {
+	"[%c] Calibrate magnetometer",
+	"[%c] Calibrate gyroscope",
+	"[ ] Monitor data"
+};
+
+static int itemComplete[] = {
+	0,
+	0,
+	0
+};
+
+static const int items = sizeof(checklist) / sizeof(char*);
 
 static void signalHandler(int _signum)
 {
@@ -45,40 +64,85 @@ static void logCallback(const char *_fmt, ...)
 }
 #endif
 
-int main(int _argc, char* _argv[])
+static int initCurses(WINDOW **w)
 {
-	RpiDataSource rds;
-	Data sample;
+	int rows, cols;
+
+	initscr();
+	getmaxyx(stdscr, rows, cols);
+	*w = newwin(rows - 1, cols, 1, 0);
+	box(*w, 0, 0);
+	noecho();
+	keypad(*w, TRUE);
+	curs_set(0);
+
+	return 0;
+}
+
+static int menu(WINDOW *w)
+{
+	int i, ch, c = 0, rows, cols;
+
+	if (itemComplete[0]) ++c;
+	if (itemComplete[1]) ++c;
+
+	getmaxyx(w, rows, cols);
+	mvwprintw(w, 0, (cols - strlen(title)) / 2, "%s", title);
+
+	for (i = 0; i < items; ++i)
+	{
+		if (i == c)
+			wattron(w, A_STANDOUT);
+		else
+			wattroff(w, A_STANDOUT);
+
+		mvwprintw(w, i + 1, 2, checklist[i], (itemComplete[i] != 0 ? 'X' : ' '));
+	}
+
+	wrefresh(w);
+
+	while (true)
+	{
+		ch = wgetch(w);
+		mvwprintw(w, c + 1, 2, checklist[c], (itemComplete[c] != 0 ? 'X' : ' '));
+
+		switch (ch)
+		{
+		case 'q':
+			return -1;
+		case KEY_UP:
+			c = max(c - 1, 0);
+			break;
+		case KEY_DOWN:
+			c = min(c + 1, items - 1);
+			break;
+		case 0xa:
+		case KEY_ENTER:
+			return c;
+		}
+
+		wattron(w, A_STANDOUT);
+		mvwprintw(w, c + 1, 2, checklist[c], (itemComplete[c] != 0 ? 'X' : ' '));
+		wattroff(w, A_STANDOUT);
+	}
+
+	return -1;
+}
+
+static int calMag(RpiDataSource *_rds, DVector *_mBias, DVector *_mScale)
+{
 	RawData rawSample;
 	DVector mMax = {-DBL_MAX, -DBL_MAX, -DBL_MAX};
 	DVector mMin = {DBL_MAX, DBL_MAX, DBL_MAX};
-	DVector mBias, mScale, gBias;
-	AveragingBuffer gx(400), gy(400), gz(400);
-	string l;
 	double avg;
 	int i;
 
-	signal(SIGINT, signalHandler);
-	signal(SIGTERM, signalHandler);
+	if (!_rds->start())
+		return 0;
 
-	if (wiringPiSetup() != 0)
+	for (i = 0; i < 2400; ++i)
 	{
-		cout << "Failed to initialize wiringPi.\n";
-		return -1;
-	}
-
-	cout << "Press enter, then wave autopilot unit in a figure-8...";
-	getline(cin, l);
-
-	if (!rds.start())
-	{
-		cerr << "Failed to start data source.\n";
-		return -1;
-	}
-
-	for (i = 0; i < 400 && running != 0; ++i)
-	{
-		rds.rawSample(&rawSample);
+		_rds->rawSample(&rawSample);
 
 		mMax.x = max(mMax.x, rawSample.m.x);
 		mMax.y = max(mMax.y, rawSample.m.y);
@@ -91,66 +155,122 @@ int main(int _argc, char* _argv[])
 		usleep(25000);
 	}
 
-	rds.stop();
+	_rds->stop();
 
-	cout << endl;
+	_mBias->x = (mMax.x + mMin.x) / 2.0;
+	_mBias->y = (mMax.y + mMin.y) / 2.0;
+	_mBias->z = (mMax.z + mMin.z) / 2.0;
 
-	mBias.x = (mMax.x + mMin.x) / 2.0;
-	mBias.y = (mMax.y + mMin.y) / 2.0;
-	mBias.z = (mMax.z + mMin.z) / 2.0;
+	_mScale->x = (mMax.x - mMin.x) / 2.0;
+	_mScale->y = (mMax.y - mMin.y) / 2.0;
+	_mScale->z = (mMax.z - mMin.z) / 2.0;
+	avg = (_mScale->x + _mScale->y + _mScale->z) / 3.0;
 
-	cout << "Magnetometer Samples: " << i << endl <<
-			"X bias : " << mBias.x << endl <<
-			"Y bias : " << mBias.y << endl <<
-			"Z bias : " << mBias.z << endl;
+	_mScale->x = avg / _mScale->x;
+	_mScale->y = avg / _mScale->y;
+	_mScale->z = avg / _mScale->z;
 
-	mScale.x = (mMax.x - mMin.x) / 2.0;
-	mScale.y = (mMax.y - mMin.y) / 2.0;
-	mScale.z = (mMax.z - mMin.z) / 2.0;
-	avg = (mScale.x + mScale.y + mScale.z) / 3.0;
+	return 1;
+}
 
-	mScale.x = avg / mScale.x;
-	mScale.y = avg / mScale.y;
-	mScale.z = avg / mScale.z;
+static int calGyro(RpiDataSource *_rds, DVector *_gBias)
+{
+	RawData rawSample;
+	AveragingBuffer gx(400), gy(400), gz(400);
+	int i;
 
-	cout << "X scale: " << mScale.x << endl <<
-			"Y scale: " << mScale.y << endl <<
-			"Z scale: " << mScale.z << endl << endl;
+	if (!_rds->start())
+		return 0;
 
-	cout << "Set the autopilot unit down on a level surface, then press enter...";
-	getline(cin, l);
-
-	if (!rds.start())
+	for (i = 0; i < 2400; ++i)
 	{
-		cerr << "Failed to start data source.\n";
-		return -1;
-	}
+		_rds->rawSample(&rawSample);
 
-	for (i = 0; i < 400 && running != 0; ++i)
-	{
-		rds.rawSample(&rawSample);
-
-		gBias.x = gx.pushSample(rawSample.g.x);
-		gBias.y = gy.pushSample(rawSample.g.y);
-		gBias.z = gz.pushSample(rawSample.g.z);
+		_gBias->x = gx.pushSample(rawSample.g.x);
+		_gBias->y = gy.pushSample(rawSample.g.y);
+		_gBias->z = gz.pushSample(rawSample.g.z);
 
 		usleep(25000);
 	}
 
-	rds.stop();
+	_rds->stop();
 
-	cout << "Gyroscope Samples: " << i << endl <<
-			"X bias : " << mBias.x << endl <<
-			"Y bias : " << mBias.y << endl <<
-			"Z bias : " << mBias.z << endl << endl;
+	return 1;
+}
 
-	cout << "Press enter to run with bias / scale calculations...";
+static void killCurses(WINDOW *w)
+{
+	delwin(w);
+	endwin();
+}
+
+int main(int _argc, char* _argv[])
+{
+	RpiDataSource rds;
+	Data sample;
+	DVector mBias, mScale, gBias;
+	WINDOW *w;
+	int go = 0;
+
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+
+	wiringPiSetup();
+	initCurses(&w);
+
+	while (go == 0)
+	{
+		switch (menu(w))
+		{
+		case 0:
+			itemComplete[0] = calMag(&rds, &mBias, &mScale);
+
+			if (itemComplete[0] == 0)
+			{
+				killCurses(w);
+				cerr << "Failed to calibrate magnetometer.\n";
+				return -1;
+			}
+
+			break;
+		case 1:
+			itemComplete[1] = calGyro(&rds, &gBias);
+
+			if (itemComplete[1] == 0)
+			{
+				killCurses(w);
+				cerr << "Failed to calibrate gyroscope.\n";
+				return -1;
+			}
+
+			break;
+		case 2:
+			if (itemComplete[0] == 0 || itemComplete[1] == 0)
+				break;
+
+			go = 1;
+			break;
+		default:
+			go = -1;
+			break;
+		}
+	}
+
+	if (go < 0)
+	{
+		killCurses(w);
+		return 0;
+	}
 
 	if (!rds.start(gBias, mBias, mScale))
 	{
+		killCurses(w);
 		cerr << "Failed to start data source.\n";
 		return -1;
 	}
+
+	delwin(w);
+	clear();
 
 	while (running != 0)
 	{
@@ -159,15 +279,17 @@ int main(int _argc, char* _argv[])
 		if (sample.yaw < 0)
 			sample.yaw += 360;
 
-		cout << "\rYaw: " << setw(6) << setprecision(4) << sample.yaw << " " <<
-				"Pitch: " << setw(6) << setprecision(4) << sample.pitch << " " <<
-				"Roll: " << setw(6) << setprecision(4) << sample.roll;
-		cout.flush();
-
-		usleep(1000000);
+		mvprintw(0, 0, "\rYaw: %6.1f  Pitch: %6.1f  Roll: %6.1f",
+			sample.yaw,
+			sample.pitch,
+			sample.roll);
+		refresh();
+		usleep(500000);
 	}
 
 	rds.stop();
+	clear();
+	endwin();
 
 	return 0;
 }
