@@ -8,12 +8,13 @@ BINDIR=./bin/
 OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
  $(OBJDIR)FlightDirector.o $(OBJDIR)GISDatabase.o $(OBJDIR)Utilities.o\
  $(OBJDIR)RpiAutopilot.o $(OBJDIR)RpiDataSource.o $(OBJDIR)LSM6DS33.o\
- $(OBJDIR)LIS3MDL.o $(OBJDIR)NMEA.o $(OBJDIR)Madgwick_AHRS.o
+ $(OBJDIR)LIS3MDL.o $(OBJDIR)NMEA.o $(OBJDIR)Madgwick_AHRS.o\
+ $(OBJDIR)Arduino.o
 EXTOBJFILES=$(OBJDIR)HD44780.o
 
 all: otto tests rdbtool
 
-tests: test_imu test_gps test_clr test_mag
+tests: test_imu test_gps test_clr test_mag test_arduino
 
 directories:
 	@echo Making output directories...
@@ -55,6 +56,10 @@ test_clr: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_clr.o
 test_mag: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_mag.o
 	@echo Linking test_mag...
 	@$(CXX) $(OBJFILES) $(OBJDIR)test_mag.o -o $(BINDIR)test_mag $(LDFLAGS)
+
+test_arduino: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_arduino.o
+	@echo Linking test_arduino...
+	@$(CXX) $(OBJFILES) $(OBJDIR)test_arduino.o -o $(BINDIR)test_arduino $(LDFLAGS)
 
 $(OBJDIR)recoverydb.o: ../nav/recoverydb.cpp
 	@echo Compiling $<...
