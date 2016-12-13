@@ -3,17 +3,25 @@
 #include <Utilities.hpp>
 #include "HD44780.hpp"
 
-#define PIN_REG     7
-#define PIN_RW      0
-#define PIN_DB0     2
-#define PIN_DB1     3
-#define PIN_DB2     4
-#define PIN_DB3     5
-#define PIN_DB4     6
-#define PIN_DB5     21
-#define PIN_DB6     22
-#define PIN_DB7     23
-#define PIN_E       24
+//									  Raspberry Pi 3		HD44780
+//					wiringPi		BCM			Physical	Package
+//					---------------------------------------------------
+//		Vss (0V)											1
+//		Vdd (+5V)											2
+//		Vo  (LCD)											3
+#define PIN_REG     7			//	4			7			4
+#define PIN_RW      0			//	17			11			5
+#define PIN_E       24			//	19			35			6
+#define PIN_DB0     2			//	27			13			7
+#define PIN_DB1     3			//	22			15			8
+#define PIN_DB2     4			//	23			16			9
+#define PIN_DB3     5			//	24			18			10
+#define PIN_DB4     6			//	25			22			11
+#define PIN_DB5     21			//	5			29			12
+#define PIN_DB6     22			//	6			31			13
+#define PIN_DB7     23			//	13			33			14
+//		Backlight 1											15
+//		Backlight 2											16
 
 static const int pins[] = {
     PIN_DB0,    PIN_DB1,    PIN_DB2,    PIN_DB3,
