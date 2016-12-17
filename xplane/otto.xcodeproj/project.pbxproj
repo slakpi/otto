@@ -302,14 +302,8 @@
 					"IBM=0",
 					"LIN=0",
 				);
-				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/SDK/CHeaders",
-					/usr/local/include,
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/SDK/Libraries/Mac",
-					/usr/local/lib,
-				);
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/CHeaders";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/Libraries/Mac";
 				PRODUCT_NAME = mac;
 			};
 			name = Debug;
@@ -332,14 +326,8 @@
 					"APL=1",
 					"XPLM210=1",
 				);
-				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/SDK/CHeaders",
-					/usr/local/include,
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/SDK/Libraries/Mac",
-					/usr/local/lib,
-				);
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/CHeaders";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/Libraries/Mac";
 				PRODUCT_NAME = mac;
 			};
 			name = Release;
