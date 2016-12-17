@@ -8,6 +8,8 @@
 #include <wiringPi.h>
 #include <AveragingBuffer.hpp>
 #include "Arduino.hpp"
+#include "RpiDataSource.hpp"
+#include "HD44780.hpp"
 
 #define DELAY			1000000
 
@@ -29,7 +31,11 @@ static void signalHandler(int _signal)
 int main(int _argc, char* _argv[])
 {
 	Arduino a;
-	bool b = false;
+	HD44780 lcd;
+	RpiDataSource data;
+	Data sample;
+	float pos = 0.0f, d = 0.25f;
+	char str[17];
 
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
@@ -46,9 +52,39 @@ int main(int _argc, char* _argv[])
 		return -1;
 	}
 
+	if (!lcd.init())
+	{
+		cerr << "Failed to initialize LCD.\n";
+		return -1;
+	}
+
+	if (!data.start())
+	{
+		cerr << "Failed to initialize data source.\n";
+		return -1;
+	}
+
 	while (run)
 	{
-		a.setLight(b = !b);
+		data.sample(&sample);
+		a.setServoPos(pos);
+
+		lcd.clear();
+		lcd.setCursorPos(0, 0);
+		snprintf(str, 16, "%-2.2f* %-3.2f*", sample.pos.lat, sample.pos.lon);
+		lcd.writeString(str);
+
+		lcd.setCursorPos(1, 0);
+		snprintf(str, 16, "%-1.2f", a.getServoPos());
+		lcd.writeString(str);
+
+		if (pos >= 1.0f)
+			d = -0.25;
+		else if (pos <= -1.0f)
+			d = 0.25;
+
+		pos += d;
+
 		usleep(DELAY);
 	}
 

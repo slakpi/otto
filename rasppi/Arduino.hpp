@@ -8,7 +8,8 @@ class Arduino
 public:
 	enum RegAddr
 	{
-		TEST			  = 0x01,
+		LED_REG		= 0x01,
+		SERVO_REG	= 0x02
 	};
 
 public:
@@ -24,8 +25,9 @@ public:
 
 	void setLight(bool _on);
 
-private:
-	bool init2(u_int8_t _addr);
+	float getServoPos() const;
+
+	void setServoPos(float _Prel);
 
 private:
 	int fd;

@@ -59,7 +59,7 @@ test_mag: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_mag.o
 
 test_arduino: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_arduino.o
 	@echo Linking test_arduino...
-	@$(CXX) $(OBJFILES) $(OBJDIR)test_arduino.o -o $(BINDIR)test_arduino $(LDFLAGS)
+	@$(CXX) $(OBJFILES) $(OBJDIR)HD44780.o $(OBJDIR)test_arduino.o -o $(BINDIR)test_arduino $(LDFLAGS)
 
 $(OBJDIR)recoverydb.o: ../nav/recoverydb.cpp
 	@echo Compiling $<...
