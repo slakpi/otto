@@ -35,6 +35,7 @@
 		25296E841C5E91EF00C70B02 /* GISDatabase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GISDatabase.cpp; path = ../GISDatabase.cpp; sourceTree = "<group>"; };
 		25296E851C5E91EF00C70B02 /* GISDatabase.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = GISDatabase.hpp; path = ../GISDatabase.hpp; sourceTree = "<group>"; };
 		25296E881C5EE63F00C70B02 /* libsqlite3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.0.dylib; path = /usr/local/lib/libsqlite3.0.dylib; sourceTree = "<group>"; };
+		254A0B291E04F9BC001B84C5 /* local.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = local.xcconfig; sourceTree = "<group>"; };
 		258C0B4E1C135325004E72F6 /* mac.xpl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = mac.xpl; sourceTree = BUILT_PRODUCTS_DIR; };
 		258C0B581C135852004E72F6 /* XPLM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPLM.framework; path = SDK/Libraries/Mac/XPLM.framework; sourceTree = "<group>"; };
 		258C0B5A1C135860004E72F6 /* XPWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPWidgets.framework; path = SDK/Libraries/Mac/XPWidgets.framework; sourceTree = "<group>"; };
@@ -85,6 +86,7 @@
 		258C0B451C135325004E72F6 = {
 			isa = PBXGroup;
 			children = (
+				254A0B291E04F9BC001B84C5 /* local.xcconfig */,
 				25296E881C5EE63F00C70B02 /* libsqlite3.0.dylib */,
 				25296E821C5E8EC200C70B02 /* libspatialite.7.dylib */,
 				258C0B5A1C135860004E72F6 /* XPWidgets.framework */,
@@ -214,7 +216,6 @@
 		258C0B501C135325004E72F6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -251,7 +252,6 @@
 		258C0B511C135325004E72F6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -286,6 +286,7 @@
 		};
 		258C0B531C135325004E72F6 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 254A0B291E04F9BC001B84C5 /* local.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -302,14 +303,21 @@
 					"IBM=0",
 					"LIN=0",
 				);
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/CHeaders";
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/Libraries/Mac";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SDK/CHeaders",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SDK/Libraries/Mac",
+				);
 				PRODUCT_NAME = mac;
 			};
 			name = Debug;
 		};
 		258C0B541C135325004E72F6 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 254A0B291E04F9BC001B84C5 /* local.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -326,8 +334,14 @@
 					"APL=1",
 					"XPLM210=1",
 				);
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/CHeaders";
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/SDK/Libraries/Mac";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SDK/CHeaders",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SDK/Libraries/Mac",
+				);
 				PRODUCT_NAME = mac;
 			};
 			name = Release;
