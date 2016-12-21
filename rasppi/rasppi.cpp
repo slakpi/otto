@@ -1,36 +1,22 @@
+#include <sys/types.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <csignal>
 #include <cfloat>
 #include <cstring>
-#include <iostream>
-#include <iomanip>
-#include <string>
-#include <algorithm>
-#include <ncurses.h>
+#include <cstdarg>
+#include <ctime>
+#include <syslog.h>
 #include <wiringPi.h>
 #include <AveragingBuffer.hpp>
+#include <FlightDirector.hpp>
+#include <GISDatabase.hpp>
 #include "RpiDataSource.hpp"
+#include "RpiAutopilot.hpp"
 
 using namespace std;
 
 static int running = 1;
-
-static const char *title = "PREFLIGHT CHECKLIST";
-
-static const char* checklist[] = {
-	"[%c] Calibrate magnetometer",
-	"[%c] Calibrate gyroscope",
-	"[ ] Monitor data"
-};
-
-static int itemComplete[] = {
-	0,
-	0,
-	0
-};
-
-static const int items = sizeof(checklist) / sizeof(char*);
 
 static void signalHandler(int _signum)
 {
@@ -43,7 +29,6 @@ static void signalHandler(int _signum)
 	}
 }
 
-#if 0
 static void logCallback(const char *_fmt, ...)
 {
 	int len;
@@ -62,71 +47,17 @@ static void logCallback(const char *_fmt, ...)
 	syslog(LOG_INFO, str);
 	delete [] str;
 }
-#endif
 
-static int initCurses(WINDOW **w)
+static void pulseLight(int _pulses)
 {
-	int rows, cols;
-
-	initscr();
-	getmaxyx(stdscr, rows, cols);
-	*w = newwin(rows - 1, cols, 1, 0);
-	box(*w, 0, 0);
-	noecho();
-	keypad(*w, TRUE);
-	curs_set(0);
-
-	return 0;
-}
-
-static int menu(WINDOW *w)
-{
-	int i, ch, c = 0, rows, cols;
-
-	if (itemComplete[0]) ++c;
-	if (itemComplete[1]) ++c;
-
-	getmaxyx(w, rows, cols);
-	mvwprintw(w, 0, (cols - strlen(title)) / 2, "%s", title);
-
-	for (i = 0; i < items; ++i)
+	for ( ; _pulses > 0; --_pulses)
 	{
-		if (i == c)
-			wattron(w, A_STANDOUT);
-		else
-			wattroff(w, A_STANDOUT);
+		digitalWrite(1, HIGH);
+		usleep(250000);
 
-		mvwprintw(w, i + 1, 2, checklist[i], (itemComplete[i] != 0 ? 'X' : ' '));
+		digitalWrite(1, LOW);
+		usleep(250000);
 	}
-
-	wrefresh(w);
-
-	while (true)
-	{
-		ch = wgetch(w);
-		mvwprintw(w, c + 1, 2, checklist[c], (itemComplete[c] != 0 ? 'X' : ' '));
-
-		switch (ch)
-		{
-		case 'q':
-			return -1;
-		case KEY_UP:
-			c = max(c - 1, 0);
-			break;
-		case KEY_DOWN:
-			c = min(c + 1, items - 1);
-			break;
-		case 0xa:
-		case KEY_ENTER:
-			return c;
-		}
-
-		wattron(w, A_STANDOUT);
-		mvwprintw(w, c + 1, 2, checklist[c], (itemComplete[c] != 0 ? 'X' : ' '));
-		wattroff(w, A_STANDOUT);
-	}
-
-	return -1;
 }
 
 static int calMag(RpiDataSource *_rds, DVector *_mBias, DVector *_mScale)
@@ -138,7 +69,10 @@ static int calMag(RpiDataSource *_rds, DVector *_mBias, DVector *_mScale)
 	int i;
 
 	if (!_rds->start())
+	{
+		logCallback("OTTO: Failed to start Raspberry Pi Data Source.");
 		return 0;
+	}
 
 	for (i = 0; i < 2400; ++i)
 	{
@@ -170,6 +104,8 @@ static int calMag(RpiDataSource *_rds, DVector *_mBias, DVector *_mScale)
 	_mScale->y = avg / _mScale->y;
 	_mScale->z = avg / _mScale->z;
 
+	logCallback("OTTO: Magnetometer calibration complete.");
+
 	return 1;
 }
 
@@ -180,7 +116,10 @@ static int calGyro(RpiDataSource *_rds, DVector *_gBias)
 	int i;
 
 	if (!_rds->start())
+	{
+		logCallback("OTTO: Failed to start Raspberry Pi Data Source.");
 		return 0;
+	}
 
 	for (i = 0; i < 2400; ++i)
 	{
@@ -195,101 +134,90 @@ static int calGyro(RpiDataSource *_rds, DVector *_gBias)
 
 	_rds->stop();
 
-	return 1;
-}
+	logCallback("OTTO: Gyroscope calibration complete.");
 
-static void killCurses(WINDOW *w)
-{
-	delwin(w);
-	endwin();
+	return 1;
 }
 
 int main(int _argc, char* _argv[])
 {
-	RpiDataSource rds;
-	Data sample;
+	RpiDataSource *rds = new RpiDataSource();
+	RpiAutopilot *ap = new RpiAutopilot();
+	GISDatabase *db = new GISDatabase("recovery.db");
+	FlightDirector *fd = new FlightDirector(ap, rds, db, logCallback);
 	DVector mBias, mScale, gBias;
-	WINDOW *w;
-	int go = 0;
+	struct timespec start, end;
+	u_int64_t diff;
+	bool l = false;
 
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
 
-	wiringPiSetup();
-	initCurses(&w);
-
-	while (go == 0)
+	if (wiringPiSetup() == -1)
 	{
-		switch (menu(w))
-		{
-		case 0:
-			itemComplete[0] = calMag(&rds, &mBias, &mScale);
-
-			if (itemComplete[0] == 0)
-			{
-				killCurses(w);
-				cerr << "Failed to calibrate magnetometer.\n";
-				return -1;
-			}
-
-			break;
-		case 1:
-			itemComplete[1] = calGyro(&rds, &gBias);
-
-			if (itemComplete[1] == 0)
-			{
-				killCurses(w);
-				cerr << "Failed to calibrate gyroscope.\n";
-				return -1;
-			}
-
-			break;
-		case 2:
-			if (itemComplete[0] == 0 || itemComplete[1] == 0)
-				break;
-
-			go = 1;
-			break;
-		default:
-			go = -1;
-			break;
-		}
-	}
-
-	if (go < 0)
-	{
-		killCurses(w);
-		return 0;
-	}
-
-	if (!rds.start(gBias, mBias, mScale))
-	{
-		killCurses(w);
-		cerr << "Failed to start data source.\n";
+		logCallback("OTTO: Failed to start WiringPi library.");
 		return -1;
 	}
 
-	delwin(w);
-	clear();
+	pinMode(1, OUTPUT);
+	digitalWrite(1, LOW);
+
+// Pulse the light once to indicate magnetometer calibration
+	pulseLight(1);
+	usleep(5000000); //Give the user 5 seconds to prepare
+	digitalWrite(1, HIGH);
+
+	if (calMag(rds, &mBias, &mScale) != 1)
+	{
+		pulseLight(50); // Calibration failed
+		return -1;
+	}
+
+	digitalWrite(1, LOW);
+
+//	Pulse the light twice to indicate gyroscope calibration
+	pulseLight(2);
+	usleep(5000000); // Give the user 5 seconds to prepare
+	digitalWrite(1, HIGH);
+
+	if (calGyro(rds, &gBias) != 1)
+	{
+		pulseLight(50); // Calibration failed
+		return -1;
+	}
+
+	digitalWrite(1, LOW);
+
+//	Start up the Raspberry Pi Data Source with corrections
+	if (!rds->start(gBias, mBias, mScale))
+	{
+		logCallback("OTTO: Failed to start Raspberry Pi Data Source.");
+		return -1;
+	}
+
+	logCallback("OTTO: Beginning main loop...");
+
+//	Main loop
+
+	fd->enable();
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
 
 	while (running != 0)
 	{
-		rds.sample(&sample);
+		usleep(1000000);
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		diff = 1000000000L * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
 
-		if (sample.yaw < 0)
-			sample.yaw += 360;
+		fd->refresh((double)diff / 1000.0);
+		digitalWrite(1, (l = !l) ? HIGH : LOW);
 
-		mvprintw(0, 0, "\rYaw: %6.1f  Pitch: %6.1f  Roll: %6.1f",
-			sample.yaw,
-			sample.pitch,
-			sample.roll);
-		refresh();
-		usleep(500000);
+		start = end;
 	}
 
-	rds.stop();
-	clear();
-	endwin();
+	delete fd; // FlightDirector deletes `ap', `rds', and `db'
+
+	logCallback("OTTO: Shutdown.");
 
 	return 0;
 }

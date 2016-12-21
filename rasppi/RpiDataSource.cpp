@@ -288,7 +288,7 @@ RpiDataSource::RpiDataSource()
 
 RpiDataSource::~RpiDataSource()
 {
-
+	stop();
 }
 
 bool RpiDataSource::start()
