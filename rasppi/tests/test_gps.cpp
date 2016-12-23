@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <wiringPi.h>
 #include <wiringSerial.h>
-#include "NMEA.hpp"
-#include "HD44780.hpp"
+#include <NMEA.hpp>
+#include <HD44780.hpp>
 
 #define DELAY 100000
 

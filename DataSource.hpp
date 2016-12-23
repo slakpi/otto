@@ -27,17 +27,17 @@ struct Data
 
  The DataSource class establishes an interface used by a FlightDirector to
  obtain current data about the aircraft.
- 
+
  ******************************************************************************/
 
 class DataSource
 {
 public:
 	DataSource();
-	
+
 public:
 	virtual ~DataSource();
-	
+
 public:
 	virtual bool sample(Data *_data) const = 0;
 };

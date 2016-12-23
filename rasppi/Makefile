@@ -1,79 +1,82 @@
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 CC=gcc
-CCFLAGS=-g -c -Wall -Wno-strict-aliasing
+CFLAGS=-I$(ROOT_DIR)/../ -I$(ROOT_DIR) -g -O2 -Wall
 CXX=g++
-CXXFLAGS=-g -c -std=c++11 -Wall
-LDFLAGS=-lspatialite -lsqlite3 -lwiringPi -lpthread -lcurses
-OBJDIR=./obj/
-BINDIR=./bin/
+CXXFLAGS=-I$(ROOT_DIR)/../ -I$(ROOT_DIR) -g -O2 -std=c++11 -Wall
+LIBS=-lspatialite -lsqlite3 -lwiringPi -lpthread -lm
+LDFLAGS=
+OBJDIR=$(ROOT_DIR)/obj/
+BINDIR=$(ROOT_DIR)/bin/
 OBJFILES=$(OBJDIR)Autopilot.o $(OBJDIR)AveragingBuffer.o $(OBJDIR)DataSource.o\
  $(OBJDIR)FlightDirector.o $(OBJDIR)GISDatabase.o $(OBJDIR)Utilities.o\
  $(OBJDIR)RpiAutopilot.o $(OBJDIR)RpiDataSource.o $(OBJDIR)LSM6DS33.o\
  $(OBJDIR)LIS3MDL.o $(OBJDIR)NMEA.o $(OBJDIR)Madgwick_AHRS.o\
- $(OBJDIR)Arduino.o
-EXTOBJFILES=$(OBJDIR)HD44780.o
+ $(OBJDIR)Arduino.o $(OBJDIR)HD44780.o
 
-all: otto tests rdbtool
+all: otto rdbtool
 
-tests: test_imu test_gps test_clr test_mag test_arduino
-
-directories:
-	@echo Making output directories...
-	@mkdir -p $(OBJDIR)
-	@mkdir -p $(BINDIR)
-
-$(OBJDIR)%.o: ../%.c
-	@echo Compiling $<...
-	@$(CC) $(CCFLAGS) -o $@ $<
+tests: test_gps test_imu test_mag test_arduino
 
 $(OBJDIR)%.o: ./%.c
 	@echo Compiling $<...
-	@$(CC) $(CCFLAGS) -I../ -o $@ $<
+	@mkdir -p $(@D)
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJDIR)%.o: ../%.cpp
 	@echo Compiling $<...
-	@$(CXX) $(CXXFLAGS) -o $@ $<
+	@mkdir -p $(@D)
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJDIR)%.o: ./%.cpp
 	@echo Compiling $<...
-	@$(CXX) $(CXXFLAGS) -I../ -o $@ $<
+	@mkdir -p $(@D)
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-otto: directories $(OBJFILES) $(OBJDIR)rasppi.o
-	@echo Linking otto...
-	@$(CXX) $(OBJFILES) $(OBJDIR)rasppi.o -o $(BINDIR)otto $(LDFLAGS)
-
-test_gps: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_gps.o
-	@echo Linking test_gps...
-	@$(CXX) $(OBJFILES) $(OBJDIR)HD44780.o $(OBJDIR)test_gps.o -o $(BINDIR)test_gps $(LDFLAGS)
-
-test_imu: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_imu.o
-	@echo Linking test_imu...
-	@$(CXX) $(OBJFILES) $(OBJDIR)HD44780.o $(OBJDIR)test_imu.o -o $(BINDIR)test_imu $(LDFLAGS)
-
-test_clr: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_clr.o
-	@echo Linking test_clr...
-	@$(CXX) $(OBJFILES) $(OBJDIR)HD44780.o $(OBJDIR)test_clr.o -o $(BINDIR)test_clr $(LDFLAGS)
-
-test_mag: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_mag.o
-	@echo Linking test_mag...
-	@$(CXX) $(OBJFILES) $(OBJDIR)test_mag.o -o $(BINDIR)test_mag $(LDFLAGS)
-
-test_arduino: directories $(OBJFILES) $(EXTOBJFILES) $(OBJDIR)test_arduino.o
-	@echo Linking test_arduino...
-	@$(CXX) $(OBJFILES) $(OBJDIR)HD44780.o $(OBJDIR)test_arduino.o -o $(BINDIR)test_arduino $(LDFLAGS)
-
-$(OBJDIR)recoverydb.o: ../nav/recoverydb.cpp
+$(OBJDIR)%.o: ./tests/%.cpp
 	@echo Compiling $<...
-	@$(CXX) $(CXXFLAGS) -o $@ $<
+	@mkdir -p $(@D)
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-rdbtool: directories $(OBJDIR)recoverydb.o
-	@echo Linking recoverydb tool...
-	@$(CXX) $(OBJDIR)recoverydb.o -o $(BINDIR)recoverydb $(LDFLAGS)
+$(OBJDIR)%.o: ../nav/%.cpp
+	@echo Compiling $<...
+	@mkdir -p $(@D)
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-recoverydb: directories rdbtool
+otto: $(OBJFILES) $(OBJDIR)rasppi.o
+	@echo Linking $@...
+	@mkdir -p $(BINDIR)
+	@$(CXX) -o $(BINDIR)$@ $^ $(LDFLAGS) $(LIBS)
+
+test_gps: $(OBJFILES) $(OBJDIR)test_gps.o
+	@echo Linking $@...
+	@mkdir -p $(BINDIR)
+	@$(CXX) -o $(BINDIR)$@ $^ $(LDFLAGS) $(LIBS)
+
+test_imu: $(OBJFILES) $(OBJDIR)test_imu.o
+	@echo Linking $@...
+	@mkdir -p $(BINDIR)
+	@$(CXX) -o $(BINDIR)$@ $^ $(LDFLAGS) $(LIBS)
+
+test_mag: $(OBJFILES) $(OBJDIR)test_mag.o
+	@echo Linking $@...
+	@mkdir -p $(BINDIR)
+	@$(CXX) -o $(BINDIR)$@ $^ $(LDFLAGS) $(LIBS)
+
+test_arduino: $(OBJFILES) $(OBJDIR)test_arduino.o
+	@echo Linking $@...
+	@mkdir -p $(BINDIR)
+	@$(CXX) -o $(BINDIR)$@ $^ $(LDFLAGS) $(LIBS)
+
+rdbtool: $(OBJDIR)recoverydb.o
+	@echo Linking $@...
+	@mkdir -p $(BINDIR)
+	@$(CXX) -o $(BINDIR)$@ $^ $(LDFLAGS) $(LIBS)
+
+recovery_db: rdbtool
 	@echo Building recovery database...
-	@$(BINDIR)recoverydb $(BINDIR)recovery.db ../nav/recovery.csv
+	@rm -f $(BINDIR)recovery.db
+	@$(BINDIR)rdbtool $(BINDIR)recovery.db ../nav/recovery.csv
 
 clean:
 	@echo Cleaning...
 	@rm -rf $(BINDIR) $(OBJDIR)
-

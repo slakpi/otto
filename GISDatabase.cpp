@@ -21,10 +21,10 @@ bool GISDatabase::openDatabase(const char *_dbPath)
 {
 	int ret;
 	sqlite3 *db;
-	
+
 	if (isOpen())
 		closeDatabase();
-	
+
 	ret = sqlite3_open_v2(
 	 _dbPath,
 	 &db,
@@ -35,14 +35,14 @@ bool GISDatabase::openDatabase(const char *_dbPath)
 	{
 		if (db != nullptr)
 			sqlite3_close(db);
-		
+
 		return false;
 	}
-	
+
 	cache = spatialite_alloc_connection();
 	spatialite_init_ex(db, cache, 0);
 	dbhandle = db;
-	
+
 	return true;
 }
 
@@ -50,11 +50,11 @@ void GISDatabase::closeDatabase()
 {
 	if (!isOpen())
 		return;
-	
+
 	sqlite3_close((sqlite3*)dbhandle);
 	spatialite_cleanup_ex(cache);
 	spatialite_shutdown();
-	
+
 	dbhandle = nullptr;
 	cache = nullptr;
 }
@@ -74,9 +74,9 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 	gaiaGeomCollPtr g;
 	sqlite3_stmt *stmt;
 	int ret;
-	
+
 	_loc.id = -1;
-	
+
 	if (!isOpen())
 		return false;
 
@@ -84,11 +84,11 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 	we pick the closest one.  the SpatiaLite function Distance() returns angular distance using
 	SRID 4326 rather than projected distance in meters.  but, that's ok, we only need relative
 	ordering.
- 
+
 	limit the search to the ground track +/- 45 degrees.  the flight director can use this to
 	avoid projecting a distance ring based on a tail wind and then turning into the wind.
  */
-	
+
 	ret = sqlite3_prepare_v2(
 	 db,
 	 "SELECT pkid, ident, elev, location FROM recovery "
@@ -99,19 +99,19 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 	 -1,
 	 &stmt,
 	 nullptr);
-	
+
 	if (ret != SQLITE_OK)
 		return false;
-	
+
 	azMin = degToRad(fmod(fmod(_hdg - 45.0, 360.0) + 360.0, 360.0));
 	azMax = degToRad(fmod(_hdg + 360.0, 360.0));
 	gaiaMakePoint(_ppos.lon, _ppos.lat, 4326, &pposBlob, &pposSize);
-	
+
 	sqlite3_bind_blob(stmt, 1, pposBlob, pposSize, 0);
 	sqlite3_bind_double(stmt, 2, _maxDistance * nm2m);
 	sqlite3_bind_double(stmt, 3, azMin);
 	sqlite3_bind_double(stmt, 4, azMax);
-	
+
 	ret = sqlite3_step(stmt);
 
 	if (ret == SQLITE_ROW)
@@ -125,9 +125,9 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 		_loc.ident = (const char *)sqlite3_column_text(stmt, 1);
 		_loc.id = sqlite3_column_int64(stmt, 0);
 	}
-	
+
 	sqlite3_finalize(stmt);
 	free(pposBlob);
-	
+
 	return (_loc.id >= 0);
 }

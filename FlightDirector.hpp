@@ -17,33 +17,33 @@ private:
 		trackMode,
 		circleMode
 	};
-	
+
 public:
 	FlightDirector(Autopilot *_ap, DataSource *_data, GISDatabase *_db, LogCallback _log);
-	
+
 public:
 	~FlightDirector();
-	
+
 public:
 	void enable();
-	
+
 	void disable();
-	
+
 	void refresh(unsigned int _elapsedMilliseconds);
-	
+
 private:
 	void updateProjectedDistance(unsigned int _elapsedMilliseconds);
-	
+
 	void updateProjectedLandingPoint(unsigned int _elapsedMilliseconds);
-	
+
 	void updateHeading(unsigned int _elapsedMilliseconds);
-	
+
 	void updateHeadingSeekMode(unsigned int _elapsedMilliseconds);
-	
+
 	void updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double _dis, double _brg);
 
 	void updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double _dis, double _brg);
-	
+
 private:
 	Autopilot *ap;
 	DataSource *data;

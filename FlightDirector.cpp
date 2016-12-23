@@ -19,19 +19,19 @@ static const double minAltAGL = 5000.0;
 
 static inline double interceptCorrection(double _hdg, double _err, double _gs)
 {
-	
+
 /*	90 degree correction when 2 minutes off course. */
-	
+
 	return fmod(fmod(_hdg - min(_err * 60.0 / _gs * 45.0, 90.0), 360.0) + 360.0, 360.0);
 }
 
 static inline double maxCircleDistance(double _projDistance)
 {
-	
+
 /*	tighten the circle as projected distance decreases.  circle at a maximum of
 	5 nm and a minimum of 1 nm.
  */
-	
+
 	return max(min(_projDistance / 2.0 - 1.0, 5.0), 1.0);
 }
 
@@ -126,20 +126,20 @@ void FlightDirector::refresh(unsigned int _elapsedMilliseconds)
 	logarithmic curve hits +/- 1 units of rudder deflection at the 3 degree per second
 	maximum rate of turn. dR is positive for right deflection and negative for left
 	deflection.
-	 
+
 	  Ar = ( log10( |dR| + .33 ) + .48 ) * sgn( dR )
  */
 
 	dR = Rt - Ra;
 	Ar = min(log10(min(fabs(dR), maxRoT) + 0.33) + 0.48, 1.0) * sgn(dR);
-	
+
 	if (d.avail & DATA_PITCH)
 	{
 		if (d.pitch < -20.0 || d.pitch > 20.0)
 /*	if the pitch is too excessive, just center the rudder to prevent spins. */
 			Ar = 0.0f;
 	}
-	
+
 	ap->setRudderDeflection((float)Ar);
 }
 
@@ -151,17 +151,17 @@ void FlightDirector::updateProjectedDistance(unsigned int _elapsedMilliseconds)
 	is climbing.  we can recompute when the glider resumes a descent.
 
 	clamp ground speed to positive values.
- 
+
 	clamp distance to 3,000 nm.  this keeps the projections from getting silly.
  */
 
 	double av = min(verticalSpeed.average(), -1.0);
 	double ag = max(groundSpeed.average(), 0.0);
 	double agl = lastSample.alt;
-	
+
 	if (recoveryLoc.id != -1)
 		agl -= recoveryLoc.elev;
-	
+
 	projDistance = min(agl / (-av * 60) * ag, 3000.0);
 }
 
@@ -175,9 +175,9 @@ void FlightDirector::updateProjectedLandingPoint(unsigned int _elapsedMillisecon
 void FlightDirector::updateHeading(unsigned int _elapsedMilliseconds)
 {
 	double dis = 0, brg = 0;
-	
+
 	getDistanceAndBearing(lastSample.pos, recoveryLoc.pos, dis, brg);
-	
+
 	switch (mode)
 	{
 		case seekMode:
@@ -196,11 +196,11 @@ void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
 {
 	RecoveryLocation loc;
 	double dis, brg;
-	
+
 	if (db->getRecoveryLocation(lastSample.pos, lastSample.hdg, projDistance, loc))
 	{
 		getDistanceAndBearing(lastSample.pos, loc.pos, dis, brg);
-		
+
 		mode = trackMode;
 		recoveryLoc = loc;
 		originLoc = lastSample.pos;
@@ -212,11 +212,11 @@ void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
 	}
 	else
 	{
-		
+
 /*	fly a box pattern with 1 minute legs. */
-		
+
 		seekCourseTime += _elapsedMilliseconds;
-		
+
 		if (seekCourseTime >= 60000)
 		{
 			targetHdg = fmod(targetHdg + 90.0, 360.0);
@@ -228,33 +228,33 @@ void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
 void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, double _dis, double _brg)
 {
 	double x, ag = groundSpeed.average(), md = maxCircleDistance(projDistance);
-	
+
 	if (_dis > projDistance && lastSample.alt - recoveryLoc.elev > minAltAGL)
 	{
-		
+
 		/*	if the distance to the current recovery point is greater than our projected glide
 		 distance, go back into seek mode.  UNLESS we are below 5000 feet AGL.  in that
 		 case, just keep heading toward the recovery location.
 		 */
-		
+
 		mode = seekMode;
 		recoveryLoc.id = -1;
 		seekCourseTime = 0;
 		(*log)("OTTO: no longer able to make %s, entering seek mode.\n", recoveryLoc.ident.c_str());
 	}
-	
+
 	if (_dis <= md + 2.0)
 	{
 		mode = circleMode;
 		(*log)("OTTO: entering circle mode around %s.\n", recoveryLoc.ident.c_str());
-		
+
 		return;
 	}
-	
+
 /*	calculate the cross-track error, then use a linear forumla to calculate an intercept
 	correction based on the amount of time, in minutes, required to cover the cross-track
 	error distance.
- 
+
 	       x * 60     90 degrees
 	  a = -------- * ------------
 	         GS        2 minutes
@@ -262,7 +262,7 @@ void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, d
 	cross-track error is negative when left of course and positive when right of course,
 	so subtract the intercept correction.
  */
- 
+
 	x = crossTrackError(originLoc, recoveryLoc.pos, lastSample.pos);
 	targetHdg = interceptCorrection(recoveryCourse, x, ag);
 }
@@ -270,7 +270,7 @@ void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, d
 void FlightDirector::updateHeadingCircleMode(unsigned int _elapsedMilliseconds, double _dis, double _brg)
 {
 	double ag = groundSpeed.average(), md = maxCircleDistance(projDistance);
-	
+
 	if (_dis > md + 5.0)
 	{
 		mode = trackMode;
@@ -278,11 +278,11 @@ void FlightDirector::updateHeadingCircleMode(unsigned int _elapsedMilliseconds, 
 		(*log)("OTTO: entering track mode to %s on a new course of %.0f.\n",
 			recoveryLoc.ident.c_str(),
 			_brg);
-		
+
 		return;
 	}
-	
+
 /*	maintain a constant distance circle around the recovery location. */
-	
+
 	targetHdg = interceptCorrection(_brg + 90.0, _dis - md, ag);
 }

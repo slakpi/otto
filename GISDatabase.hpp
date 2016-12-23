@@ -17,20 +17,20 @@ class GISDatabase
 {
 public:
 	GISDatabase(const char *_dbPath);
-	
+
 public:
 	~GISDatabase();
-	
+
 private:
 	bool openDatabase(const char *_dbPath);
-	
+
 	void closeDatabase();
-	
+
 public:
 	bool isOpen() const;
-	
+
 	bool getRecoveryLocation(const Loc &_ppos, double _hdg, double _maxDistance, RecoveryLocation &_loc);
-	
+
 private:
 	void *dbhandle;
 	void *cache;
