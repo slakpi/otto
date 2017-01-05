@@ -28,7 +28,7 @@ add_custom_command(OUTPUT recovery.db
                     COMMAND $<TARGET_FILE:rdbtool> recovery.db $<TARGET_FILE_DIR:rdbtool>/../../nav/recovery.csv
 					COMMENT "Building recovery database"
 					VERBATIM)
-add_custom_target(recovery_db DEPENDS recovery.db)
+add_custom_target(recovery_db ALL DEPENDS recovery.db)
 
 add_custom_target(tests DEPENDS test_arduino test_gps test_imu test_mag)
 
