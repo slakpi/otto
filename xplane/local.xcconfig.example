@@ -1,0 +1,2 @@
+HEADER_SEARCH_PATHS = # Custom header search paths
+LIBRARY_SEARCH_PATHS = # Custom library search paths
