@@ -13,6 +13,9 @@
 		25296E891C5EE63F00C70B02 /* libsqlite3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 25296E881C5EE63F00C70B02 /* libsqlite3.0.dylib */; };
 		258C0B591C135852004E72F6 /* XPLM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 258C0B581C135852004E72F6 /* XPLM.framework */; };
 		258C0B5B1C135860004E72F6 /* XPWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 258C0B5A1C135860004E72F6 /* XPWidgets.framework */; };
+		25A919E11E1F20F0004BB980 /* recoverydb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25A919E01E1F20F0004BB980 /* recoverydb.cpp */; };
+		25A919E21E1F21D9004BB980 /* libsqlite3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 25296E881C5EE63F00C70B02 /* libsqlite3.0.dylib */; };
+		25A919E31E1F21DB004BB980 /* libspatialite.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 25296E821C5E8EC200C70B02 /* libspatialite.7.dylib */; };
 		25E7A9C91C419D540054E2F4 /* Autopilot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9BD1C419D540054E2F4 /* Autopilot.cpp */; };
 		25E7A9CA1C419D540054E2F4 /* Autopilot.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 25E7A9BE1C419D540054E2F4 /* Autopilot.hpp */; };
 		25E7A9CB1C419D540054E2F4 /* AveragingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9BF1C419D540054E2F4 /* AveragingBuffer.cpp */; };
@@ -30,6 +33,18 @@
 		25E7A9E21C419D5E0054E2F4 /* xplane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25E7A9DB1C419D5E0054E2F4 /* xplane.cpp */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		25A919D71E1F20D6004BB980 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		25296E821C5E8EC200C70B02 /* libspatialite.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libspatialite.7.dylib; path = /usr/local/lib/libspatialite.7.dylib; sourceTree = "<group>"; };
 		25296E841C5E91EF00C70B02 /* GISDatabase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GISDatabase.cpp; path = ../GISDatabase.cpp; sourceTree = "<group>"; };
@@ -39,6 +54,8 @@
 		258C0B4E1C135325004E72F6 /* mac.xpl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = mac.xpl; sourceTree = BUILT_PRODUCTS_DIR; };
 		258C0B581C135852004E72F6 /* XPLM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPLM.framework; path = SDK/Libraries/Mac/XPLM.framework; sourceTree = "<group>"; };
 		258C0B5A1C135860004E72F6 /* XPWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPWidgets.framework; path = SDK/Libraries/Mac/XPWidgets.framework; sourceTree = "<group>"; };
+		25A919D91E1F20D6004BB980 /* rdbtool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rdbtool; sourceTree = BUILT_PRODUCTS_DIR; };
+		25A919E01E1F20F0004BB980 /* recoverydb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = recoverydb.cpp; path = ../../nav/recoverydb.cpp; sourceTree = "<group>"; };
 		25E7A9BD1C419D540054E2F4 /* Autopilot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Autopilot.cpp; path = ../Autopilot.cpp; sourceTree = "<group>"; };
 		25E7A9BE1C419D540054E2F4 /* Autopilot.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Autopilot.hpp; path = ../Autopilot.hpp; sourceTree = "<group>"; };
 		25E7A9BF1C419D540054E2F4 /* AveragingBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AveragingBuffer.cpp; path = ../AveragingBuffer.cpp; sourceTree = "<group>"; };
@@ -68,6 +85,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		25A919D61E1F20D6004BB980 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				25A919E21E1F21D9004BB980 /* libsqlite3.0.dylib in Frameworks */,
+				25A919E31E1F21DB004BB980 /* libspatialite.7.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -91,7 +117,8 @@
 				25296E821C5E8EC200C70B02 /* libspatialite.7.dylib */,
 				258C0B5A1C135860004E72F6 /* XPWidgets.framework */,
 				258C0B581C135852004E72F6 /* XPLM.framework */,
-				258C0B551C1355E3004E72F6 /* Source */,
+				25A919D41E1F203D004BB980 /* otto */,
+				25A919DA1E1F20D6004BB980 /* rdbtool */,
 				258C0B4F1C135325004E72F6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -100,11 +127,12 @@
 			isa = PBXGroup;
 			children = (
 				258C0B4E1C135325004E72F6 /* mac.xpl */,
+				25A919D91E1F20D6004BB980 /* rdbtool */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		258C0B551C1355E3004E72F6 /* Source */ = {
+		25A919D41E1F203D004BB980 /* otto */ = {
 			isa = PBXGroup;
 			children = (
 				2530F7C01C5D840000FE8398 /* X-Plane */,
@@ -121,7 +149,15 @@
 				25E7A9C71C419D540054E2F4 /* Utilities.cpp */,
 				25E7A9C81C419D540054E2F4 /* Utilities.hpp */,
 			);
-			name = Source;
+			name = otto;
+			sourceTree = "<group>";
+		};
+		25A919DA1E1F20D6004BB980 /* rdbtool */ = {
+			isa = PBXGroup;
+			children = (
+				25A919E01E1F20F0004BB980 /* recoverydb.cpp */,
+			);
+			path = rdbtool;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -162,6 +198,23 @@
 			productReference = 258C0B4E1C135325004E72F6 /* mac.xpl */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
+		25A919D81E1F20D6004BB980 /* rdbtool */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 25A919DD1E1F20D6004BB980 /* Build configuration list for PBXNativeTarget "rdbtool" */;
+			buildPhases = (
+				25A919D51E1F20D6004BB980 /* Sources */,
+				25A919D61E1F20D6004BB980 /* Frameworks */,
+				25A919D71E1F20D6004BB980 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = rdbtool;
+			productName = rdbtool;
+			productReference = 25A919D91E1F20D6004BB980 /* rdbtool */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -173,6 +226,10 @@
 				TargetAttributes = {
 					258C0B4D1C135325004E72F6 = {
 						CreatedOnToolsVersion = 7.1.1;
+					};
+					25A919D81E1F20D6004BB980 = {
+						CreatedOnToolsVersion = 8.2.1;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -189,6 +246,7 @@
 			projectRoot = "";
 			targets = (
 				258C0B4D1C135325004E72F6 /* otto */,
+				25A919D81E1F20D6004BB980 /* rdbtool */,
 			);
 		};
 /* End PBXProject section */
@@ -207,6 +265,14 @@
 				25E7A9CB1C419D540054E2F4 /* AveragingBuffer.cpp in Sources */,
 				25E7A9DC1C419D5E0054E2F4 /* XPlaneAutopilot.cpp in Sources */,
 				25E7A9C91C419D540054E2F4 /* Autopilot.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		25A919D51E1F20D6004BB980 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				25A919E11E1F20F0004BB980 /* recoverydb.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -346,6 +412,39 @@
 			};
 			name = Release;
 		};
+		25A919DE1E1F20D6004BB980 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 254A0B291E04F9BC001B84C5 /* local.xcconfig */;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CODE_SIGN_IDENTITY = "-";
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		25A919DF1E1F20D6004BB980 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 254A0B291E04F9BC001B84C5 /* local.xcconfig */;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CODE_SIGN_IDENTITY = "-";
+				GCC_NO_COMMON_BLOCKS = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -366,6 +465,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		25A919DD1E1F20D6004BB980 /* Build configuration list for PBXNativeTarget "rdbtool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				25A919DE1E1F20D6004BB980 /* Debug */,
+				25A919DF1E1F20D6004BB980 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
