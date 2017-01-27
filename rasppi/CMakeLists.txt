@@ -72,4 +72,4 @@ target_include_directories(test_mag PRIVATE ./ ../)
 target_link_libraries(test_mag wiringPi)
 
 install(TARGETS otto DESTINATION bin)
-install(FILES $<TARGET_FILE_DIR:rdbtool>/recovery.db DESTINATION shared/otto)
+install(FILES $<TARGET_FILE_DIR:rdbtool>/recovery.db DESTINATION share/otto)
