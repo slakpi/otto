@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.6)
+
 project("otto")
 
 add_executable(otto ../Autopilot.cpp
@@ -25,7 +27,7 @@ target_link_libraries(rdbtool sqlite3 spatialite)
 
 add_custom_command(OUTPUT recovery.db
                     DEPENDS rdbtool
-                    COMMAND $<TARGET_FILE:rdbtool> recovery.db $<TARGET_FILE_DIR:rdbtool>/../../nav/recovery.csv
+                    COMMAND $<TARGET_FILE:rdbtool> $<TARGET_FILE_DIR:rdbtool>/recovery.db $<TARGET_FILE_DIR:rdbtool>/../../nav/recovery.csv
 					COMMENT "Building recovery database"
 					VERBATIM)
 add_custom_target(recovery_db ALL DEPENDS recovery.db)
@@ -68,3 +70,6 @@ add_executable(test_mag EXCLUDE_FROM_ALL ./LIS3MDL.cpp
 target_compile_features(test_mag PRIVATE cxx_nullptr)
 target_include_directories(test_mag PRIVATE ./ ../)
 target_link_libraries(test_mag wiringPi)
+
+install(TARGETS otto DESTINATION bin)
+install(FILES $<TARGET_FILE_DIR:rdbtool>/recovery.db DESTINATION shared/otto)
