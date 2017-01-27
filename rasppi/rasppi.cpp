@@ -216,7 +216,7 @@ int main(int _argc, char* _argv[])
 	}
 
 	delete fd; // FlightDirector deletes `ap', `rds', and `db'
-
+	digitalWrite(1, LOW);
 	logCallback("OTTO: Shutdown.");
 
 	return 0;
