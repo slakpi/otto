@@ -44,6 +44,8 @@ void onI2CReceive(int _numBytes)
  * determine which value to write back.
  */
   
+  recv = 0;
+
   while (_numBytes > 0)
   {
     buf[recv++] = Wire.read(); // Read the next byte.
