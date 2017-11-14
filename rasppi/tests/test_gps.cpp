@@ -6,7 +6,9 @@
 #include <wiringPi.h>
 #include <wiringSerial.h>
 #include <NMEA.hpp>
+#ifdef GPS_LCD_OUTPUT
 #include <HD44780.hpp>
+#endif
 
 #define DELAY 100000
 
@@ -33,7 +35,9 @@ int main(int _argc, char* _argv[])
 	NMEA::NMEABase *b = NULL;
 	NMEA::GGA *gga = NULL;
 	NMEA::VTG *vtg = NULL;
+#ifdef GPS_LCD_OUTPUT
 	HD44780 lcd;
+#endif
 	timespec spec;
 	int64_t t, r;
 	int d;
@@ -49,11 +53,13 @@ int main(int _argc, char* _argv[])
 		return -1;
 	}
 
+#ifdef GPS_LCD_OUTPUT
 	if (!lcd.init())
 	{
 		cerr << "Failed to setup LCD driver.\n";
 		return -1;
 	}
+#endif
 
 	fd = serialOpen("/dev/ttyAMA0", 57600);
 
@@ -128,9 +134,13 @@ int main(int _argc, char* _argv[])
 				if (m < 0)
 					m = -m;
 
-				snprintf(buf, 17, "%c%3d %.1f GS%3d", gga->lat < 0 ? 'S' : 'N', d, m, (int)vtg->ktsGS);
+				snprintf(buf, 17, "%c%3d %.1f ", gga->lat < 0 ? 'S' : 'N', d, m, (int)vtg->ktsGS);
+#ifdef GPS_LCD_OUTPUT
 				lcd.setCursorPos(0, 0);
 				lcd.writeString(buf);
+#else
+				printf(buf);
+#endif
 
 				d = (int)(gga->lon / (60.0 * 10000.0));
 				if (d < 0)
@@ -140,9 +150,13 @@ int main(int _argc, char* _argv[])
 				if (m < 0)
 					m = -m;
 
-				snprintf(buf, 17, "%c%3d %.1f GT%3d", gga->lon < 0 ? 'W' : 'E', d, m, (int)vtg->magGTK);
+				snprintf(buf, 17, "%c%3d %.1f\r", gga->lon < 0 ? 'W' : 'E', d, m, (int)vtg->magGTK);
+#ifdef GPS_LCD_OUTPUT
 				lcd.setCursorPos(1, 0);
 				lcd.writeString(buf);
+#else
+				printf(buf);
+#endif
 
 				gga->destroy(), gga = NULL;
 				vtg->destroy(), vtg = NULL;
