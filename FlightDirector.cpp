@@ -206,7 +206,7 @@ void FlightDirector::updateHeadingSeekMode(unsigned int _elapsedMilliseconds)
 		originLoc = lastSample.pos;
 		recoveryCourse = brg;
 		(*log)("OTTO: tracking to %s (elev. %.1f) on a course of %.0f.\n",
-			loc.ident.c_str(),
+			loc.ident,
 			loc.elev,
 			brg);
 	}
@@ -240,13 +240,13 @@ void FlightDirector::updateHeadingTrackMode(unsigned int _elapsedMilliseconds, d
 		mode = seekMode;
 		recoveryLoc.id = -1;
 		seekCourseTime = 0;
-		(*log)("OTTO: no longer able to make %s, entering seek mode.\n", recoveryLoc.ident.c_str());
+		(*log)("OTTO: no longer able to make %s, entering seek mode.\n", recoveryLoc.ident);
 	}
 
 	if (_dis <= md + 2.0)
 	{
 		mode = circleMode;
-		(*log)("OTTO: entering circle mode around %s.\n", recoveryLoc.ident.c_str());
+		(*log)("OTTO: entering circle mode around %s.\n", recoveryLoc.ident);
 
 		return;
 	}
@@ -276,7 +276,7 @@ void FlightDirector::updateHeadingCircleMode(unsigned int _elapsedMilliseconds, 
 		mode = trackMode;
 		recoveryCourse = _brg;
 		(*log)("OTTO: entering track mode to %s on a new course of %.0f.\n",
-			recoveryLoc.ident.c_str(),
+			recoveryLoc.ident,
 			_brg);
 
 		return;

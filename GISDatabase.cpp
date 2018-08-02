@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstring>
 #include <sqlite3.h>
 #include <spatialite.h>
 #include "GISDatabase.hpp"
@@ -122,7 +123,8 @@ bool GISDatabase::getRecoveryLocation(const Loc &_ppos, double _hdg, double _max
 		_loc.pos.lat = g->FirstPoint->Y;
 		_loc.pos.lon = g->FirstPoint->X;
 		_loc.elev = sqlite3_column_double(stmt, 2);
-		_loc.ident = (const char *)sqlite3_column_text(stmt, 1);
+		strncpy(_loc.ident, (const char*)sqlite3_column_text(stmt, 1), 8);
+    _loc.ident[8] = 0;
 		_loc.id = sqlite3_column_int64(stmt, 0);
 	}
 

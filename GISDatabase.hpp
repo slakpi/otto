@@ -8,7 +8,7 @@
 struct RecoveryLocation
 {
 	int64_t id;
-	std::string ident;
+  char ident[9];
 	Loc pos;
 	double elev;
 };

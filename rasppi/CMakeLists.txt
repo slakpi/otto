@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
 project("otto")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wno-psabi")
 set(INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 configure_file(config.h.in config.h)
 
@@ -20,7 +21,7 @@ add_executable(otto ../Autopilot.cpp
                     ./RpiAutopilot.cpp
                     ./RpiDataSource.cpp)
 target_compile_features(otto PRIVATE cxx_nullptr)
-target_include_directories(otto PRIVATE ./ ../)
+target_include_directories(otto PRIVATE ./ ../ ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(otto sqlite3 spatialite wiringPi pthread)
 
 add_executable(rdbtool ../nav/recoverydb.cpp)

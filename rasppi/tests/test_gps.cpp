@@ -134,7 +134,7 @@ int main(int _argc, char* _argv[])
 				if (m < 0)
 					m = -m;
 
-				snprintf(buf, 17, "%c%3d %.1f ", gga->lat < 0 ? 'S' : 'N', d, m, (int)vtg->ktsGS);
+				snprintf(buf, 17, "%c%3d %.1f ", gga->lat < 0 ? 'S' : 'N', d, m);
 #ifdef GPS_LCD_OUTPUT
 				lcd.setCursorPos(0, 0);
 				lcd.writeString(buf);
@@ -150,7 +150,7 @@ int main(int _argc, char* _argv[])
 				if (m < 0)
 					m = -m;
 
-				snprintf(buf, 17, "%c%3d %.1f\r", gga->lon < 0 ? 'W' : 'E', d, m, (int)vtg->magGTK);
+				snprintf(buf, 17, "%c%3d %.1f\r", gga->lon < 0 ? 'W' : 'E', d, m);
 #ifdef GPS_LCD_OUTPUT
 				lcd.setCursorPos(1, 0);
 				lcd.writeString(buf);

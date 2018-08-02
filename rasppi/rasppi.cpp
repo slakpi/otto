@@ -6,8 +6,11 @@
 #include <cstring>
 #include <cstdarg>
 #include <ctime>
+#include <string>
+#include <getopt.h>
 #include <syslog.h>
 #include <wiringPi.h>
+#include <config.h>
 #include <AveragingBuffer.hpp>
 #include <FlightDirector.hpp>
 #include <GISDatabase.hpp>
@@ -15,6 +18,15 @@
 #include "RpiAutopilot.hpp"
 
 using namespace std;
+
+static const char recoveryDbOpt = 'd';
+static const char helpOpt = 'h';
+static const char *shortOpts = "d:h";
+static const struct option longOpts[] = {
+  { "recovery-database", required_argument, nullptr, recoveryDbOpt },
+  { "help", no_argument, nullptr, helpOpt },
+  { nullptr, 0, nullptr, 0 }
+};
 
 static int running = 1;
 
@@ -139,11 +151,50 @@ static int calGyro(RpiDataSource *_rds, DVector *_gBias)
 	return 1;
 }
 
+static void getRecoveryDbPath(string &_dbPath)
+{
+#ifdef WIN32
+/* TODO: Get the path based on the ProgramData folder. */
+#else
+  _dbPath = INSTALL_PREFIX;
+
+  if (!_dbPath.empty())
+  {
+    if (_dbPath.back() != '/')
+      _dbPath.push_back('/');
+  }
+
+  _dbPath.append("share/otto/recovery.db");
+#endif
+}
+
 int main(int _argc, char* _argv[])
 {
+  string dbPath;
+  getRecoveryDbPath(dbPath);
+
+  while (true)
+  {
+    int c = getopt_long(_argc, _argv, shortOpts, longOpts, nullptr);
+
+    if (c == -1)
+      break;
+
+    switch (c)
+    {
+    case recoveryDbOpt:
+      dbPath = optarg;
+      break;
+    case helpOpt:
+      break;
+    default:
+      break;
+    }
+  }
+
 	RpiDataSource *rds = new RpiDataSource();
 	RpiAutopilot *ap = new RpiAutopilot();
-	GISDatabase *db = new GISDatabase("recovery.db");
+	GISDatabase *db = new GISDatabase(dbPath.c_str());
 	FlightDirector *fd = new FlightDirector(ap, rds, db, logCallback);
 	DVector mBias, mScale, gBias;
 	struct timespec start, end;
