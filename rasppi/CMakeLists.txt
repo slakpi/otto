@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.6)
 
 project("otto")
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wno-psabi")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-psabi")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g")
 set(INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 configure_file(config.h.in config.h)
 
