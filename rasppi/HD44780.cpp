@@ -24,36 +24,36 @@
 //      Backlight 2                                         16
 
 static const int pins[] = {
-    PIN_DB0,    PIN_DB1,    PIN_DB2,    PIN_DB3,
-    PIN_DB4,    PIN_DB5,    PIN_DB6,    PIN_DB7
+  PIN_DB0,    PIN_DB1,    PIN_DB2,    PIN_DB3,
+  PIN_DB4,    PIN_DB5,    PIN_DB6,    PIN_DB7
 };
 
 static void writeCommand(unsigned char _c)
 {
-    digitalWrite(PIN_E, 1);
-    digitalWrite(PIN_REG, 0);
-    digitalWrite(PIN_RW, 0);
+  digitalWrite(PIN_E, 1);
+  digitalWrite(PIN_REG, 0);
+  digitalWrite(PIN_RW, 0);
 
-    for (int i = 0; i < 8; ++i)
-        digitalWrite(pins[i], _c & 0x1), _c >>= 1;
+  for (int i = 0; i < 8; ++i)
+    digitalWrite(pins[i], _c & 0x1), _c >>= 1;
 
-    usleep(3000);
+  usleep(3000);
 
-    digitalWrite(PIN_E, 0);
+  digitalWrite(PIN_E, 0);
 }
 
 static void writeData(unsigned char _c)
 {
-    digitalWrite(PIN_E, 1);
-    digitalWrite(PIN_REG, 1);
-    digitalWrite(PIN_RW, 0);
+  digitalWrite(PIN_E, 1);
+  digitalWrite(PIN_REG, 1);
+  digitalWrite(PIN_RW, 0);
 
-    for (int i = 0; i < 8; ++i)
-        digitalWrite(pins[i], _c & 0x1), _c >>= 1;
+  for (int i = 0; i < 8; ++i)
+    digitalWrite(pins[i], _c & 0x1), _c >>= 1;
 
-    usleep(3000);
+  usleep(3000);
 
-    digitalWrite(PIN_E, 0);
+  digitalWrite(PIN_E, 0);
 }
 
 HD44780::HD44780()
@@ -72,25 +72,25 @@ bool HD44780::init()
   if (initialized)
     return true;
 
-    // Assuming wiringPi has already been initialized using wPi pins.
-    pinMode(PIN_REG, OUTPUT);
-    pinMode(PIN_RW, OUTPUT);
-    pinMode(PIN_DB0, OUTPUT);
-    pinMode(PIN_DB1, OUTPUT);
-    pinMode(PIN_DB2, OUTPUT);
-    pinMode(PIN_DB3, OUTPUT);
-    pinMode(PIN_DB4, OUTPUT);
-    pinMode(PIN_DB5, OUTPUT);
-    pinMode(PIN_DB6, OUTPUT);
-    pinMode(PIN_DB7, OUTPUT);
-    pinMode(PIN_E, OUTPUT);
+  // Assuming wiringPi has already been initialized using wPi pins.
+  pinMode(PIN_REG, OUTPUT);
+  pinMode(PIN_RW, OUTPUT);
+  pinMode(PIN_DB0, OUTPUT);
+  pinMode(PIN_DB1, OUTPUT);
+  pinMode(PIN_DB2, OUTPUT);
+  pinMode(PIN_DB3, OUTPUT);
+  pinMode(PIN_DB4, OUTPUT);
+  pinMode(PIN_DB5, OUTPUT);
+  pinMode(PIN_DB6, OUTPUT);
+  pinMode(PIN_DB7, OUTPUT);
+  pinMode(PIN_E, OUTPUT);
 
-    writeCommand(0x0c); // display on with blinking cursor
-    writeCommand(0x3c); // 8-bit, two lines
-    writeCommand(0x10); // move cursor rather than shift display
-    writeCommand(0x06); // increment cursor, no display shift
-    writeCommand(0x01); // clear the display
-    writeCommand(0x02); // move the cursor home
+  writeCommand(0x0c); // Display on with blinking cursor
+  writeCommand(0x3c); // 8-bit, two lines
+  writeCommand(0x10); // Move cursor rather than shift display
+  writeCommand(0x06); // Increment cursor, no display shift
+  writeCommand(0x01); // Clear the display
+  writeCommand(0x02); // Move the cursor home
 
   initialized = true;
 
@@ -102,8 +102,8 @@ void HD44780::clear()
   if (!initialized)
     return;
 
-  writeCommand(0x01); // clear the display
-  writeCommand(0x02); // move the cursor home
+  writeCommand(0x01); // Clear the display
+  writeCommand(0x02); // Move the cursor home
 }
 
 void HD44780::setCursorPos(int _line, int _column)
