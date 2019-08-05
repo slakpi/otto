@@ -3,7 +3,7 @@
 
 struct DVector
 {
-	double x, y, z;
+  double x, y, z;
 };
 
 #endif

@@ -7,30 +7,30 @@
 template<typename T>
 T clamp(const T &_a, const T &_l, const T &_h)
 {
-	return std::min(std::max(_a, _l), _h);
+  return std::min(std::max(_a, _l), _h);
 }
 
 template<typename T> int sgn(const T &_val)
 {
-	return (T(0) < _val) - (_val < T(0));
+  return (T(0) < _val) - (_val < T(0));
 }
 
 inline double degToRad(double _deg)
 {
-	return (_deg * M_PI / 180.0);
+  return (_deg * M_PI / 180.0);
 }
 
 inline double radToDeg(double _rad)
 {
-	return (_rad * 180.0 / M_PI);
+  return (_rad * 180.0 / M_PI);
 }
 
 #define COUNTOF(a) (sizeof(a) / sizeof((a)[0]))
 
 struct Loc
 {
-	double lat;
-	double lon;
+  double lat;
+  double lon;
 };
 
 void getDestination(const Loc &_pos, double _hdg, double _distance, Loc &_dest);

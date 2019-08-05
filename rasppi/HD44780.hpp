@@ -4,24 +4,24 @@
 class HD44780
 {
 public:
-	HD44780();
+  HD44780();
 
 public:
-	~HD44780();
+  ~HD44780();
 
 public:
-	bool init();
+  bool init();
 
-	void clear();
+  void clear();
 
-	void setCursorPos(int _line, int _column);
+  void setCursorPos(int _line, int _column);
 
-	void writeChar(char _c);
+  void writeChar(char _c);
 
-	void writeString(const char *_c);
+  void writeString(const char *_c);
 
 private:
-	bool initialized;
+  bool initialized;
 };
 
 #endif

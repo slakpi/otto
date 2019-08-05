@@ -9,272 +9,272 @@ using namespace std;
 
 struct Coord
 {
-	int s;
-	int deg;
-	int min;
-	double sec;
+  int s;
+  int deg;
+  int min;
+  double sec;
 };
 
 struct LatLon
 {
-	Coord lat;
-	Coord lon;
+  Coord lat;
+  Coord lon;
 };
 
 enum Field
 {
-	aptInvalidField = -1,
-	aptIdent = 0,
-	aptLatitude = 1,
-	aptLongitude = 2,
-	aptElev = 3
+  aptInvalidField = -1,
+  aptIdent = 0,
+  aptLatitude = 1,
+  aptLongitude = 2,
+  aptElev = 3
 };
 
 static int _parseCoord(const char *_str, Coord *_coord)
 {
-	char *stop = nullptr;
+  char *stop = nullptr;
 
-	_coord->s = 1;
-	_coord->deg = (int)strtol(_str, &stop, 10), stop++;
-	_coord->min = (int)strtol(stop, &stop, 10), stop++;
-	_coord->sec = strtod(stop, &stop);
+  _coord->s = 1;
+  _coord->deg = (int)strtol(_str, &stop, 10), stop++;
+  _coord->min = (int)strtol(stop, &stop, 10), stop++;
+  _coord->sec = strtod(stop, &stop);
 
-	if (*stop == 'S' || *stop == 'W')
-		_coord->s = -1;
+  if (*stop == 'S' || *stop == 'W')
+    _coord->s = -1;
 
-	return 0;
+  return 0;
 }
 
 static int _readRecoveryLocations(const char *_path, sqlite3 *_db)
 {
-	FILE *data;
-	char buf[32768];
-	size_t i, j, bytes;
-	stringstream sql;
-	string ident;
-	string lat;
-	string lon;
-	string elev;
-	LatLon latLon;
-	int field = 0, isEOL, isSep, ret, ok = 0;
-	int isFirstLine = 1;
-	double latdd, londd, elevd;
-	unsigned char *ptBlob;
-	int ptSize, recs = 0;
-	sqlite3_stmt *stmt;
+  FILE *data;
+  char buf[32768];
+  size_t i, j, bytes;
+  stringstream sql;
+  string ident;
+  string lat;
+  string lon;
+  string elev;
+  LatLon latLon;
+  int field = 0, isEOL, isSep, ret, ok = 0;
+  int isFirstLine = 1;
+  double latdd, londd, elevd;
+  unsigned char *ptBlob;
+  int ptSize, recs = 0;
+  sqlite3_stmt *stmt;
 
-	data = fopen(_path, "r");
+  data = fopen(_path, "r");
 
-	if (!data)
-		return -1;
+  if (!data)
+    return -1;
 
-	try
-	{
-		ret = sqlite3_prepare(
-		 _db,
-		 "INSERT INTO Recovery(ident, elev, location) VALUES(?, ?, ?)",
-		 -1,
-		 &stmt,
-		 0);
+  try
+  {
+    ret = sqlite3_prepare(
+     _db,
+     "INSERT INTO Recovery(ident, elev, location) VALUES(?, ?, ?)",
+     -1,
+     &stmt,
+     0);
 
-		if (ret != SQLITE_OK)
-			throw ret;
+    if (ret != SQLITE_OK)
+      throw ret;
 
-		for (;;)
-		{
-			bytes = fread(buf, sizeof(char), 32768, data);
+    for (;;)
+    {
+      bytes = fread(buf, sizeof(char), 32768, data);
 
-			if (bytes == 0)
-				break;
+      if (bytes == 0)
+        break;
 
-			for (i = 0, j = 0; i < bytes; i++)
-			{
-				isEOL = (buf[i] == '\n');
-				isSep = (isEOL || buf[i] == ',');
+      for (i = 0, j = 0; i < bytes; i++)
+      {
+        isEOL = (buf[i] == '\n');
+        isSep = (isEOL || buf[i] == ',');
 
-				if (isFirstLine)
-				{
-					if (isEOL)
-					{
-						isFirstLine = 0;
-						j = i + 1;
-					}
+        if (isFirstLine)
+        {
+          if (isEOL)
+          {
+            isFirstLine = 0;
+            j = i + 1;
+          }
 
-					continue;
-				}
+          continue;
+        }
 
-				if (isSep || i == bytes - 1)
-				{
-					switch (field)
-					{
-					case aptIdent:
-						ident.append(&buf[j], i - j);
-						break;
-					case aptLatitude:
-						lat.append(&buf[j], i - j);
-						break;
-					case aptLongitude:
-						lon.append(&buf[j], i - j);
-						break;
-					case aptElev:
-						elev.append(&buf[j], i - j);
-						break;
-					}
+        if (isSep || i == bytes - 1)
+        {
+          switch (field)
+          {
+          case aptIdent:
+            ident.append(&buf[j], i - j);
+            break;
+          case aptLatitude:
+            lat.append(&buf[j], i - j);
+            break;
+          case aptLongitude:
+            lon.append(&buf[j], i - j);
+            break;
+          case aptElev:
+            elev.append(&buf[j], i - j);
+            break;
+          }
 
-					j = i + 1;
+          j = i + 1;
 
-					if (isSep)
-						field++;
-				}
+          if (isSep)
+            field++;
+        }
 
-				if (isEOL)
-				{
-					sqlite3_reset(stmt);
-					sqlite3_clear_bindings(stmt);
+        if (isEOL)
+        {
+          sqlite3_reset(stmt);
+          sqlite3_clear_bindings(stmt);
 
-					elevd = strtod(elev.c_str(), 0);
+          elevd = strtod(elev.c_str(), 0);
 
-					_parseCoord(lat.c_str(), &latLon.lat);
-					latdd = latLon.lat.deg;
-					latdd += latLon.lat.min / 60.0;
-					latdd += latLon.lat.sec / 3600.0;
-					latdd *= latLon.lat.s;
+          _parseCoord(lat.c_str(), &latLon.lat);
+          latdd = latLon.lat.deg;
+          latdd += latLon.lat.min / 60.0;
+          latdd += latLon.lat.sec / 3600.0;
+          latdd *= latLon.lat.s;
 
-					_parseCoord(lon.c_str(), &latLon.lon);
-					londd = latLon.lon.deg;
-					londd += latLon.lon.min / 60.0;
-					londd += latLon.lon.sec / 3600.0;
-					londd *= latLon.lon.s;
+          _parseCoord(lon.c_str(), &latLon.lon);
+          londd = latLon.lon.deg;
+          londd += latLon.lon.min / 60.0;
+          londd += latLon.lon.sec / 3600.0;
+          londd *= latLon.lon.s;
 
-					gaiaMakePoint(londd, latdd, 4326, &ptBlob, &ptSize);
+          gaiaMakePoint(londd, latdd, 4326, &ptBlob, &ptSize);
 
-					if (ident.size() > 0)
-						sqlite3_bind_text(stmt, 1, &(*ident.begin()), -1, 0);
+          if (ident.size() > 0)
+            sqlite3_bind_text(stmt, 1, &(*ident.begin()), -1, 0);
 
-					sqlite3_bind_double(stmt, 2, elevd);
-					sqlite3_bind_blob(stmt, 3, ptBlob, ptSize, free);
+          sqlite3_bind_double(stmt, 2, elevd);
+          sqlite3_bind_blob(stmt, 3, ptBlob, ptSize, free);
 
-					ret = sqlite3_step(stmt);
+          ret = sqlite3_step(stmt);
 
-					if (ret != SQLITE_DONE && ret != SQLITE_ROW)
-						throw ret;
+          if (ret != SQLITE_DONE && ret != SQLITE_ROW)
+            throw ret;
 
-					ident.clear();
-					lat.clear();
-					lon.clear();
-					elev.clear();
-					field = 0;
-					j = i + 1;
-					++recs;
-				}
-			}
-		}
+          ident.clear();
+          lat.clear();
+          lon.clear();
+          elev.clear();
+          field = 0;
+          j = i + 1;
+          ++recs;
+        }
+      }
+    }
 
-		cout << "Added " << recs << " record(s) to the recovery database." << endl;
+    cout << "Added " << recs << " record(s) to the recovery database." << endl;
 
-		ok = 1;
-	}
-	catch (int)
-	{
-	}
+    ok = 1;
+  }
+  catch (int)
+  {
+  }
 
-	if (stmt)
-		sqlite3_finalize(stmt);
-	if (data)
-		fclose(data);
-	if (ok)
-		return 0;
+  if (stmt)
+    sqlite3_finalize(stmt);
+  if (data)
+    fclose(data);
+  if (ok)
+    return 0;
 
-	cerr << "Failed to build database." << endl;
+  cerr << "Failed to build database." << endl;
 
-	return -1;
+  return -1;
 }
 
 int main(int _argc, char* _argv[])
 {
-	int ret, ok = 0;
-	sqlite3 *db = 0;
-	void *cache = 0;
+  int ret, ok = 0;
+  sqlite3 *db = 0;
+  void *cache = 0;
 
-	if (_argc < 3)
-	{
-		cerr << endl << "Usage: recoverydb <new database> <input CSV file>" << endl << endl;
-		return -1;
-	}
+  if (_argc < 3)
+  {
+    cerr << endl << "Usage: recoverydb <new database> <input CSV file>" << endl << endl;
+    return -1;
+  }
 
-	try
-	{
-		ret = sqlite3_open_v2(
-		 _argv[1],
-		 &db,
-		 SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_EXCLUSIVE,
-		 0);
+  try
+  {
+    ret = sqlite3_open_v2(
+     _argv[1],
+     &db,
+     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_EXCLUSIVE,
+     0);
 
-		if (ret != SQLITE_OK)
-			throw ret;
+    if (ret != SQLITE_OK)
+      throw ret;
 
-		cache = spatialite_alloc_connection();
-		spatialite_init_ex(db, cache, 0);
+    cache = spatialite_alloc_connection();
+    spatialite_init_ex(db, cache, 0);
 
-		ret = sqlite3_exec(
-		 db,
-		 "SELECT InitSpatialMetadata(1)",
-		 0,
-		 0,
-		 0);
+    ret = sqlite3_exec(
+     db,
+     "SELECT InitSpatialMetadata(1)",
+     0,
+     0,
+     0);
 
-		if (ret != SQLITE_OK)
-			throw ret;
+    if (ret != SQLITE_OK)
+      throw ret;
 
-		ret = sqlite3_exec(
-		 db,
-		 "CREATE TABLE Recovery( "
-		 " pkid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-		 " ident TEXT NOT NULL, "
-		 " elev DOUBLE DEFAULT 0);",
-		 0,
-		 0,
-		 0);
+    ret = sqlite3_exec(
+     db,
+     "CREATE TABLE Recovery( "
+     " pkid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+     " ident TEXT NOT NULL, "
+     " elev DOUBLE DEFAULT 0);",
+     0,
+     0,
+     0);
 
-		if (ret != SQLITE_OK)
-			throw ret;
+    if (ret != SQLITE_OK)
+      throw ret;
 
-		ret = sqlite3_exec(
-		 db,
-		 "SELECT AddGeometryColumn('Recovery', 'location', 4326, 'POINT', 'XY', 0)",
-		 0,
-		 0,
-		 0);
+    ret = sqlite3_exec(
+     db,
+     "SELECT AddGeometryColumn('Recovery', 'location', 4326, 'POINT', 'XY', 0)",
+     0,
+     0,
+     0);
 
-		if (ret != SQLITE_OK)
-			throw ret;
+    if (ret != SQLITE_OK)
+      throw ret;
 
-		ret = sqlite3_exec(
-		 db,
-		 "SELECT CreateMbrCache('Recovery', 'location')",
-		 0,
-		 0,
-		 0);
+    ret = sqlite3_exec(
+     db,
+     "SELECT CreateMbrCache('Recovery', 'location')",
+     0,
+     0,
+     0);
 
-		if (ret != SQLITE_OK)
-			throw ret;
+    if (ret != SQLITE_OK)
+      throw ret;
 
-		if (_readRecoveryLocations(_argv[2], db) == 0)
-			ok = 1;
-	}
-	catch (int)
-	{
-	}
+    if (_readRecoveryLocations(_argv[2], db) == 0)
+      ok = 1;
+  }
+  catch (int)
+  {
+  }
 
-	if (db)
-	{
-		sqlite3_close(db);
-		spatialite_cleanup_ex(cache);
-		spatialite_shutdown();
-	}
+  if (db)
+  {
+    sqlite3_close(db);
+    spatialite_cleanup_ex(cache);
+    spatialite_shutdown();
+  }
 
-	if (ok)
-		return 0;
+  if (ok)
+    return 0;
 
-	return -1;
+  return -1;
 }

@@ -6,31 +6,31 @@
 class Arduino
 {
 public:
-	enum RegAddr
-	{
-		LED_REG		= 0x01,
-		SERVO_REG	= 0x02
-	};
+  enum RegAddr
+  {
+    LED_REG   = 0x01,
+    SERVO_REG = 0x02
+  };
 
 public:
-	Arduino();
+  Arduino();
 
 public:
-	~Arduino();
+  ~Arduino();
 
 public:
     bool init();
 
-	void uninit();
+  void uninit();
 
-	void setLight(bool _on);
+  void setLight(bool _on);
 
-	float getServoPos() const;
+  float getServoPos() const;
 
-	void setServoPos(float _Prel);
+  void setServoPos(float _Prel);
 
 private:
-	int fd;
+  int fd;
 };
 
 #endif

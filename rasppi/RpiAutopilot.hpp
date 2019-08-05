@@ -4,33 +4,30 @@
 #include <Autopilot.hpp>
 #include "Arduino.hpp"
 
-/*******************************************************************************
-
- RpiAutopilot implements the autopilot interface to drive the control surface
- servos via the Arduino driver.
-
- ******************************************************************************/
-
+/**
+ * RpiAutopilot implements the autopilot interface to drive the control surface
+ * servos via the Arduino driver.
+ */
 class RpiAutopilot : public Autopilot
 {
 public:
-	RpiAutopilot();
+  RpiAutopilot();
 
 public:
-	virtual ~RpiAutopilot();
+  virtual ~RpiAutopilot();
 
 public:
-	virtual void enable();
+  virtual void enable();
 
-	virtual void disable();
+  virtual void disable();
 
-	virtual float getRudderDeflection() const;
+  virtual float getRudderDeflection() const;
 
-	virtual void setRudderDeflection(float _deflection);
+  virtual void setRudderDeflection(float _deflection);
 
 protected:
-	bool enabled;
-	Arduino arduino;
+  bool enabled;
+  Arduino arduino;
 };
 
 #endif

@@ -4,33 +4,30 @@
 #include <XPLM/XPLMDataAccess.h>
 #include "DataSource.hpp"
 
-/*******************************************************************************
-
- The XPlaneDataSource class uses the X-Plane API to obtain current data about
- the simulated aircraft.
- 
- ******************************************************************************/
-
+/**
+ * The XPlaneDataSource class uses the X-Plane API to obtain current data about
+ * the simulated aircraft.
+ */
 class XPlaneDataSource : public DataSource
 {
 public:
-	XPlaneDataSource();
-	
+  XPlaneDataSource();
+  
 public:
-	virtual ~XPlaneDataSource();
-	
+  virtual ~XPlaneDataSource();
+  
 public:
-	virtual bool sample(Data *_data) const;
-	
+  virtual bool sample(Data *_data) const;
+  
 private:
-	XPLMDataRef latRef;
-	XPLMDataRef lonRef;
-	XPLMDataRef altRef;
-	XPLMDataRef hdgRef;
-	XPLMDataRef gsRef;
-	XPLMDataRef pitchRef;
-	XPLMDataRef rollRef;
-	XPLMDataRef yawRef;
+  XPLMDataRef latRef;
+  XPLMDataRef lonRef;
+  XPLMDataRef altRef;
+  XPLMDataRef hdgRef;
+  XPLMDataRef gsRef;
+  XPLMDataRef pitchRef;
+  XPLMDataRef rollRef;
+  XPLMDataRef yawRef;
 };
 
 #endif

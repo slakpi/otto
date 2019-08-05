@@ -2,9 +2,9 @@
 #include "Utilities.hpp"
 
 RpiAutopilot::RpiAutopilot()
-:	enabled(false)
+: enabled(false)
 {
-	arduino.init();
+  arduino.init();
 }
 
 RpiAutopilot::~RpiAutopilot()
@@ -14,23 +14,23 @@ RpiAutopilot::~RpiAutopilot()
 
 void RpiAutopilot::enable()
 {
-	enabled = true;
+  enabled = true;
 }
 
 void RpiAutopilot::disable()
 {
-	enabled = false;
+  enabled = false;
 }
 
 float RpiAutopilot::getRudderDeflection() const
 {
-	return arduino.getServoPos();
+  return arduino.getServoPos();
 }
 
 void RpiAutopilot::setRudderDeflection(float _deflection)
 {
-	if (!enabled)
-		return;
+  if (!enabled)
+    return;
 
-	arduino.setServoPos(_deflection);
+  arduino.setServoPos(_deflection);
 }
